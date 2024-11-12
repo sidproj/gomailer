@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        form {
+            margin-top: -10rem;
+            display: flex;
+            flex-direction: column;
+            row-gap: 2rem;
+        }
+
+        .title {
+            align-self: center;
+            font-size: larger;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <form method="post" action="/register">
+            <div class="title">Register</div>
+            <input type="email" name="Email" placeholder="Email" required />
+            <input type="password" name="Password" placeholder="Password" required />
+            <input type="password" name="Confirm Password" placeholder="Confirm Password" required />
+            {{ if .Error}}
+            <div>{{ .Error }}</div>
+            {{ end }}
+            <input type="submit" value="Register" />
+        </form>
+    </div>
+
+</body>
+
+</html>
