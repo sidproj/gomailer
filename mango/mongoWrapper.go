@@ -16,7 +16,6 @@ import (
 type MongoDbClient struct{
     client *mongo.Client
     database string
-    context context.Context
     Cancel context.CancelFunc
 }
 
@@ -43,7 +42,6 @@ func MongoConnect (uri string,database string)*MongoDbClient{
 
     dbClient = &MongoDbClient{
         client: client,
-        context: ctx,
         Cancel: cancel,
         database: database,
     }
@@ -58,9 +56,11 @@ func (dbClient *MongoDbClient)CloseConn(){
     
     dbClient.checkConnection()
     
-    defer dbClient.Cancel()
+    ctx, cancel := context.WithTimeout(context.Background(), 
+                                       30 * time.Second)
+    defer cancel()
     defer func(){
-        if err := dbClient.client.Disconnect(dbClient.context);err != nil{
+        if err := dbClient.client.Disconnect(ctx);err != nil{
             panic(err)
         }
     }()
@@ -75,7 +75,12 @@ func (dbClient *MongoDbClient)checkConnection(){
 
 // utility function
 func (dbClient *MongoDbClient)pingMongo()error{
-    if err := dbClient.client.Ping(dbClient.context,readpref.Primary()); err != nil{
+    
+    ctx, cancel := context.WithTimeout(context.Background(), 
+                                       10 * time.Second)
+    defer cancel()
+
+    if err := dbClient.client.Ping(ctx,readpref.Primary()); err != nil{
      return err
     }
     fmt.Println("Database connection successful.")
@@ -99,20 +104,24 @@ func (dbClient *MongoDbClient)Save(collection string,model interface{})error{
     }
 
     if reflectedModel.Kind() != reflect.Struct{
-        return errors.New("Model schema must be a struct")
+        return errors.New("model schema must be a struct")
     }
 
     idField := reflectedModel.FieldByName("ID") 
 
     if !idField.IsValid(){
-        return errors.New("Model schema does not have an 'ID' field")
+        return errors.New("model schema does not have an 'ID' field")
     }
 
     mongoCollection := dbClient.getDatabase().Collection(collection)
 
+    ctx, cancel := context.WithTimeout(context.Background(), 
+                                       10 * time.Second)
+    defer cancel()
+
     if idField.IsZero(){
         
-        result,err := mongoCollection.InsertOne(dbClient.context,model)
+        result,err := mongoCollection.InsertOne(ctx,model)
 
         if err!= nil {
             return err
@@ -128,12 +137,16 @@ func (dbClient *MongoDbClient)Save(collection string,model interface{})error{
 
     }else{
  
+        ctx, cancel := context.WithTimeout(context.Background(), 
+                                30 * time.Second)
+        defer cancel()
+
         filter := bson.M{"_id":idField.Interface()}
         update := bson.M{"$set":model}
 
         opts := options.Update().SetUpsert(true)
 
-        _,err := mongoCollection.UpdateOne(dbClient.context,filter,update,opts)
+        _,err := mongoCollection.UpdateOne(ctx,filter,update,opts)
 
         if err != nil{
             return err
@@ -141,6 +154,27 @@ func (dbClient *MongoDbClient)Save(collection string,model interface{})error{
 
         // remove later
         fmt.Printf("Updated data in database for collection: %s with id: %v\n",collection,idField.Interface())
+    }
+    return nil
+}
+
+func (dbClient *MongoDbClient)createCollectionIndex (collection string,field string)error{
+    coll := dbClient.getDatabase().Collection(collection)
+    
+    ctx, cancel := context.WithTimeout(context.Background(), 
+                                10 * time.Second)
+    defer cancel()
+
+    fieldIndex := mongo.IndexModel{
+        Keys:bson.M{field:1},
+        Options: options.Index().SetUnique(true).SetName("Unique_"+field),
+    }
+
+
+    _,err := coll.Indexes().CreateOne(ctx,fieldIndex)
+    if err != nil{
+        fmt.Printf("Error while creting index for %s field for collection %s",field,collection)
+        return err
     }
     return nil
 }

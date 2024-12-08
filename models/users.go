@@ -16,14 +16,17 @@ type UserSchema struct {
 
 var userModel *mango.GenericCollectionModel[UserSchema]
 
-func GetUserModel()*mango.GenericCollectionModel[UserSchema]{
+func GetUserModel()(*mango.GenericCollectionModel[UserSchema],error){
 
 	if(userModel != nil) {
-		return userModel
+		return userModel,nil
 	}
 
 	model := mango.CreateModel[UserSchema]("users")
+	if err:=model.CreateIndex("email");err!=nil{
+		return nil,err
+	}
 	userModel = &model
-	return &model
+	return &model,nil
 }
 

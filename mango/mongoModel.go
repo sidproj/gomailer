@@ -1,9 +1,12 @@
 package mango
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -40,10 +43,17 @@ func (collection *GenericCollectionModel[T])Save(model interface{})error{
     }
 
     if idField.IsZero(){
-        
-        result,err := collection.mongoCollection.InsertOne(dbClient.context,model)
+        ctx, cancel := context.WithTimeout(context.Background(), 
+                                    10 * time.Second)
+        defer cancel()
+
+        result,err := collection.mongoCollection.InsertOne(ctx,model)
 
         if err!= nil {
+            error_code := strings.Split(strings.Split(err.Error(), "[")[1], " ")[0]
+            if error_code == "E11000"{
+                return errors.New("email already exists")
+            }
             return err
         }
 
@@ -56,13 +66,16 @@ func (collection *GenericCollectionModel[T])Save(model interface{})error{
         fmt.Printf("Inserted data in database for collection: %s with id: %v\n",collection.collectionName,result.InsertedID)
 
     }else{
- 
+        ctx, cancel := context.WithTimeout(context.Background(), 
+                                    10 * time.Second)
+        defer cancel()
+        
         filter := bson.M{"_id":idField.Interface()}
         update := bson.M{"$set":model}
 
         opts := options.Update().SetUpsert(true)
 
-        _,err := collection.mongoCollection.UpdateOne(dbClient.context,filter,update,opts)
+        _,err := collection.mongoCollection.UpdateOne(ctx,filter,update,opts)
 
         if err != nil{
             return err
@@ -78,12 +91,17 @@ func (collection *GenericCollectionModel[T])Find(filter bson.M)([]T,error){
 
 	var data []T
 
-	cursor,err := collection.mongoCollection.Find(dbClient.context,filter)
+    
+    ctx, cancel := context.WithTimeout(context.Background(), 
+                                10 * time.Second)
+    defer cancel()
+
+	cursor,err := collection.mongoCollection.Find(ctx,filter)
 	if err != nil{
 		return nil,err
 	}
 
-	if err := cursor.All(dbClient.context,&data); err != nil{
+	if err := cursor.All(ctx,&data); err != nil{
 		return nil,err
 	}
 
@@ -101,13 +119,26 @@ func (collection *GenericCollectionModel[T])FindById(id string)(T,error){
 		return model, errors.New("invalid ObjectID")
 	}
 
+    ctx, cancel := context.WithTimeout(context.Background(), 
+                                10 * time.Second)
+    defer cancel()
+
     filter := bson.M{"_id":objectID}
 
-    if err := collection.mongoCollection.FindOne(dbClient.context,filter).Decode(&model); err != nil{
+    if err := collection.mongoCollection.FindOne(ctx,filter).Decode(&model); err != nil{
         return model,err
     }
     
     fmt.Println("Func data: ",model)
 
     return model,nil
+}
+
+func (collection *GenericCollectionModel[T])CreateIndex(field string) error{
+    
+    err := dbClient.createCollectionIndex(collection.collectionName,field)
+    if err != nil{
+        return err
+    }
+    return nil
 }

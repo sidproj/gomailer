@@ -7,9 +7,8 @@ import (
 	"gomailer/middleware"
 	"gomailer/models"
 	"gomailer/router"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"log"
+	"net/http"
 )
 
 /*
@@ -43,43 +42,26 @@ func addingRoutes(){
 	router.Get("/secret",middleware.AuthMiddlewareUser(controller.HomeController))
 }
 
+func loadModels(){
+	_,err := models.GetUserModel()
+	
+	if err!=nil{
+		fmt.Printf("Error while creating user model. Error: %v",err)
+	}
+	fmt.Println("Loaded user model")
+}
+
 func main(){
 	addingRoutes()
 	router.LoadRoutes()
 
 	mangoClient := mango.MongoConnect("mongodb://localhost:27017/","gomailer")
 	defer mangoClient.CloseConn()
-	
-	UserModel := mango.CreateModel[models.UserSchema]("users")
 
-	user,err := UserModel.FindById("674b78e0d14defb43b0dcc01")
+	// load models
+	loadModels()
 
-	if err !=nil{
-		if err == mongo.ErrNoDocuments{
-			fmt.Println("No documents found with this given id.")
-		}else{
-			panic(err)
-		}
-	}
-
-	user.Email = "Hello@gmail.com"
-
-	// UserModel.Save(user)
-
-	users,err := UserModel.Find(bson.M{"$or":bson.A{
-		bson.M{"email":"test@gmail.com"},
-		bson.M{"first_name":"john"},
-	}})
-
-	if err != nil{
-		fmt.Println(err)
-	}
-
-	for _,u := range users{
-		fmt.Println(u)
-	}
-
-	// fmt.Println("Server is running at http://localhost:8080")
-	// log.Fatal(http.ListenAndServe(":8080",nil))
+	fmt.Println("Server is running at http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080",nil))
 
 }
