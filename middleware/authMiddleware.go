@@ -23,11 +23,8 @@ func AuthMiddlewareUser(next func(w http.ResponseWriter, r *http.Request))func(w
 			return
 		}
 		
-		fmt.Printf("%s\n",cookie.Value)
+		user_email,jwtErr := utils.VerifyJWT(cookie.Value)
 
-		user_id,jwtErr := utils.VerifyJWT(cookie.Value)
-
-		fmt.Printf("Data:%s, error:%s \n",user_id,jwtErr)
 
 		if jwtErr != nil{
 			fmt.Println(jwtErr)
@@ -35,6 +32,7 @@ func AuthMiddlewareUser(next func(w http.ResponseWriter, r *http.Request))func(w
 			return
 		}
 
+		r.Header.Add("user_email",user_email)
 		next(w,r)
 	}
 }
