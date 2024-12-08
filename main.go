@@ -3,23 +3,15 @@ package main
 import (
 	"fmt"
 	"gomailer/controller"
+	"gomailer/mango"
 	"gomailer/middleware"
+	"gomailer/models"
 	"gomailer/router"
 	"log"
 	"net/http"
-	// "os"
-	// "github.com/joho/godotenv"
 )
 
 /*
-func goDotEnvVariable(key string) string {
-    if err := godotenv.Load(".env"); err != nil {
-        fmt.Printf("Error loading .env file: %v\n", err)
-        os.Exit(1)
-    }
-    return os.Getenv(key)
-}
-
 var (
     authUserName = goDotEnvVariable("AWS_SMTP_USERNAME")
     authPassword = goDotEnvVariable("AWS_SMTP_PASSWORD")
@@ -50,9 +42,26 @@ func addingRoutes(){
 	router.Get("/secret",middleware.AuthMiddlewareUser(controller.HomeController))
 }
 
+func loadModels(){
+	_,err := models.GetUserModel()
+	
+	if err!=nil{
+		fmt.Printf("Error while creating user model. Error: %v",err)
+	}
+	fmt.Println("Loaded user model")
+}
+
 func main(){
 	addingRoutes()
 	router.LoadRoutes()
+
+	mangoClient := mango.MongoConnect("mongodb://localhost:27017/","gomailer")
+	defer mangoClient.CloseConn()
+
+	// load models
+	loadModels()
+
 	fmt.Println("Server is running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080",nil))
+
 }

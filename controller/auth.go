@@ -2,9 +2,12 @@ package controller
 
 import (
 	"fmt"
+	"gomailer/models"
 	"gomailer/utils"
 	"html/template"
 	"net/http"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 const(
@@ -18,6 +21,8 @@ type LoginData struct{
 }
 
 type RegisterData struct{
+	FirstName string
+	LastName string
 	Email string
 	Password string
 	ConfirmPassword string
@@ -25,6 +30,16 @@ type RegisterData struct{
 
 type ErrorData struct{
 	Error string
+}
+
+func sendError(w http.ResponseWriter,template_path string) func(error string) {
+
+	return func (error string){
+		fmt.Printf("Error: %s!\n",error)
+		e := ErrorData{Error:error}
+		t,_ := template.ParseFiles(template_path)
+		t.Execute(w,e)
+	}
 }
 
 func LoginControllerGet(w http.ResponseWriter, r *http.Request) {
@@ -36,40 +51,43 @@ func LoginControllerGet(w http.ResponseWriter, r *http.Request) {
 func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 	lg := LoginData{Email: r.FormValue("Email"),Password: r.FormValue("Password")}
 
-	fmt.Printf("email: %s password: %s\n",lg.Email,lg.Password)
-	var error string  = ""
-
+	sendLoginError := sendError(w,login_html)
 	if lg.Email == "" || lg.Password == ""{
-		error = "Invalid request data!"
-	}else if lg.Email != "sid@gmail.com" || lg.Password != "1234"{
-		error = "Wrong email or password"
+		sendLoginError("invalid request data")
+		return
+	}
+	userModel,err := models.GetUserModel()
+	
+	if err != nil{
+		fmt.Printf("Error while creating user model, error: %v",err )
+		sendLoginError(err.Error())
+		return		
 	}
 
-	// return login page with error if error
-	if(error != ""){
-		fmt.Printf("Error: %s\n",error)
-		e := ErrorData{Error:error}
-		t,_ := template.ParseFiles(login_html)
-		t.Execute(w,e)
+	filter := bson.M{"email":lg.Email}
+
+	users,err := userModel.Find(filter)
+
+	if err != nil{
+		sendLoginError(err.Error())
+		return		
+	}else if len(users) == 0{
+		sendLoginError("no user found")
+		return
+	}else if !utils.CheckPasswordHash(lg.Password,users[0].Password){
+		sendLoginError("incorrect password")
 		return
 	}
 
+	// return login page with error if error
 	fmt.Println("login success")
 
 	jwtToken,err := utils.GenerateJWT(lg.Email)
 	if err != nil{
-		error = "Error while creating jwt:"+err.Error()
-	}
-
-	// return login page with error if error
-	if(error != ""){
-		fmt.Printf("Error: %s\n",error)
-		e := ErrorData{Error:error}
-		t,_ := template.ParseFiles(login_html)
-		t.Execute(w,e)
+		sendLoginError("Error while creating jwt:"+err.Error())
 		return
 	}
-	
+
 	cookie := http.Cookie{
 		Name:     "auth_jwt",
 		Value:    jwtToken,
@@ -79,6 +97,7 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
+
 	http.SetCookie(w,&cookie)
 	http.Redirect(w,r,"/",http.StatusSeeOther)
 }
@@ -90,24 +109,48 @@ func RegisterControllerGet(w http.ResponseWriter, r *http.Request){
 }
 
 func RegisterControllerPost(w http.ResponseWriter,r *http.Request){
-	rg := RegisterData{Email: r.FormValue("Email"),Password: r.FormValue("Password"),ConfirmPassword: r.FormValue("Confirm Password")}
+	rg := RegisterData{
+		FirstName: r.FormValue("FirstName"),
+		LastName: r.FormValue("LastName"),
+		Email: r.FormValue("Email"),
+		Password: r.FormValue("Password"),
+		ConfirmPassword: r.FormValue("Confirm Password")}
 
-	var error string = ""
+	sendRegisterError := sendError(w,register_html)
 	
-	if rg.Email == "" || rg.Password == "" || rg.ConfirmPassword == ""{
-		error = "invalid request data"
+	if rg.LastName=="" || rg.FirstName=="" || rg.Email == "" || rg.Password == "" || rg.ConfirmPassword == ""{
+		sendRegisterError("invalid request data")
 	}else if rg.Password != rg.ConfirmPassword {
-		error = "password do not match"
+		sendRegisterError("password do not match")
 	}
 
-	if error != ""{
-		fmt.Printf("Error: %s!\n",error)
-		e := ErrorData{Error:error}
-		t,_ := template.ParseFiles(register_html)
-		t.Execute(w,e)
+	
+	hashedPassword,err := utils.HashPassword(rg.Password)
+	
+	if err!= nil{
+		sendRegisterError(err.Error())	
 		return
 	}
 
-	http.Redirect(w,r,"/",http.StatusOK)
+	userModel,err := models.GetUserModel()
+
+	if err!=nil{
+		sendRegisterError(err.Error())
+		return	
+	}
+
+	user := models.UserSchema{
+		FirstName: rg.FirstName,
+		LastName: rg.LastName,
+		Email: rg.Email,
+		Password: hashedPassword,
+	}
+
+	if err:=userModel.Save(user);err!=nil{
+		sendRegisterError(err.Error())
+		return
+	}
+
+	http.Redirect(w,r,"/",http.StatusSeeOther)
 
 }
