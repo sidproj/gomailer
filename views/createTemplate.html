@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeMirror Integration</title>
+
+    <!-- code mirror design/UI import -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/theme/dracula.min.css">
+
+    <!-- code mirror library import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/htmlmixed/htmlmixed.min.js"></script>
+
+    <style>
+        html,
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0px;
+            padding: 0px;
+            scroll-behavior: smooth;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* width */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f100;
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            background: #88888889;
+            border-radius: 1rem;
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .editorContainer {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            column-gap: 1rem;
+            width: calc(100% - 4rem);
+            height: 75%;
+            padding: 2rem;
+        }
+
+        .codeEditor {
+            width: 100%;
+            height: 100%;
+        }
+
+        .CodeMirror {
+            height: 100%;
+        }
+
+        .previewPane {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>HTML Template Editor with Live Preview</h1>
+    <div class="editorContainer">
+        <div class="codeEditor">
+            <textarea id="codeEditor">
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 1rem;
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Hello, World!</h1>
+    <p>Edit the code to see changes.</p>
+</body>
+
+</html>
+            </textarea>
+        </div>
+        <iframe id="previewPane" class="previewPane" style="width: 100%; border: 1px solid #ccc;"></iframe>
+    </div>
+
+    <!-- dom purify library for xss vulnerabilities -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.3/purify.min.js"
+        integrity="sha512-Ll+TuDvrWDNNRnFFIM8dOiw7Go7dsHyxRp4RutiIFW/wm3DgDmCnRZow6AqbXnCbpWu93yM1O34q+4ggzGeXVA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+
+        function debounce(func, duration) {
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => func(...args), duration);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const textarea = document.getElementById("codeEditor");
+
+            textarea.addEventListener("keyup", debounce((e) => {
+                console.log(e.target.value)
+            }
+                , 500
+            )
+            )
+
+            const editor = CodeMirror.fromTextArea(textarea, {
+                mode: "htmlmixed",
+                lineNumbers: true,
+                tabSize: 4,
+                theme: "dracula"
+            });
+
+            const previewPane = document.getElementById("previewPane");
+
+            Object.keys(DOMPurify).forEach((item) => {
+                console.log(item);
+                console.log(typeof DOMPurify[item])
+            });
+
+            const updatePreview = () => {
+                const userInput = editor.getValue();
+                const sanitizedInput = DOMPurify.sanitize(userInput, {
+                    ALLOWED_TAGS: DOMPurify.getDefaultWhitelist.concat(['style']), // Add 'style' tag
+                    ALLOWED_ATTR: ["style", "class"] // Allow 'style' and 'class' attributes
+                });
+                if (previewPane) {
+                    previewPane.srcdoc = sanitizedInput
+                }
+            }
+
+            editor.on("change", debounce(updatePreview, 1000));
+        });
+    </script>
+
+</body>
+
+</html>

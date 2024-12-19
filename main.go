@@ -39,6 +39,9 @@ func addingRoutes(){
 	router.Get("/register",controller.RegisterControllerGet)
 	router.Post("/register",controller.RegisterControllerPost)
 
+	// template testing
+	router.Get("/template",controller.CreateTemplateControllerGET)
+
 	router.Get("/secret",middleware.AuthMiddlewareUser(controller.HomeController))
 }
 
