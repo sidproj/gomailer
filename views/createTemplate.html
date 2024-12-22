@@ -28,6 +28,15 @@
             height: 100%;
         }
 
+        .container {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            width: calc(100% - 2rem);
+            height: 100%;
+            row-gap: 1rem;
+        }
+
         /* width */
         ::-webkit-scrollbar {
             width: 10px;
@@ -54,14 +63,15 @@
             flex-direction: row;
             justify-content: space-between;
             column-gap: 1rem;
-            width: calc(100% - 4rem);
+            width: 100%;
             height: 75%;
-            padding: 2rem;
         }
 
-        .codeEditor {
+        .codeEditorContainer {
             width: 100%;
             height: 100%;
+            overflow: scroll;
+            padding: 0 !important;
         }
 
         .CodeMirror {
@@ -70,27 +80,63 @@
 
         .previewPane {
             width: 100%;
-            height: 100%;
+        }
+
+        .variableContainer {
+            display: flex;
+            flex-direction: column;
+            row-gap: 0.5rem;
+        }
+
+        .variableItem {
+            display: flex;
+            flex-direction: row;
+            column-gap: 1rem;
+        }
+
+        .input {
+            width: fit-content;
+        }
+
+        .btn {
+            background-color: #555;
+            outline: none;
+            border-radius: 0.25rem;
+            border: none;
+            padding: 1rem;
+            color: white;
+            width: fit-content;
+            height: fit-content;
         }
     </style>
 </head>
 
 <body>
-    <h1>HTML Template Editor with Live Preview</h1>
-    <div class="editorContainer">
-        <div class="codeEditor">
-            <textarea id="codeEditor">
+    <div class="container">
+        <div class="variableContainer" id="variableContainer">
+            <h1>Set Variables </h1>
+            <button onclick="addVariable()" class="btn">Add new variable</button>
+            <div class="variableItem">
+                <input class="input" placeholder="Enter variable label" />
+                <input class="input" placeholder="Enter variable value" />
+            </div>
+
+        </div>
+        <h1>HTML Template Editor with Live Preview</h1>
+        <div class="editorContainer">
+            <div class="codeEditorContainer">
+                <textarea id="codeEditor">
+<!-- template code for iframe start -->
 <!DOCTYPE html>
 <html>
 
 <head>
     <title>Preview</title>
     <style>
-        body {
+        body,html {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 1rem;
-            background-color: red;
+            padding: 0.5rem;
         }
     </style>
 </head>
@@ -101,9 +147,11 @@
 </body>
 
 </html>
-            </textarea>
+<!-- template code for iframe end -->
+                </textarea>
+            </div>
+            <iframe id="previewPane" class="previewPane" style="width: 100%; border: 1px solid #ccc;" sandbox></iframe>
         </div>
-        <iframe id="previewPane" class="previewPane" style="width: 100%; border: 1px solid #ccc;"></iframe>
     </div>
 
     <!-- dom purify library for xss vulnerabilities -->
@@ -113,6 +161,24 @@
 
     <script>
 
+        const templateVariableMap = {}
+
+        const variableInputForClone = document.getElementsByClassName("variableItem")[0];
+
+        const parent = document.getElementById("variableContainer");
+
+        let inputFields = document.getElementsByClassName("variableItem")
+
+        function addVariable() {
+            const newInput = variableInputForClone.cloneNode(true);
+
+            parent.appendChild(newInput)
+        }
+
+        function updateTemplateLabelMap(e) {
+
+        }
+
         function debounce(func, duration) {
             let timer;
             return (...args) => {
@@ -121,16 +187,61 @@
             }
         }
 
+        function updateTemplateVariables() {
+            inputFields = document.getElementsByClassName("variableItem");
+        }
+
+        function replaceTemplateVariable(content) {
+            if ((content + "").length <= 4) {
+                return content;
+            }
+
+            let data = (content + "").trim();
+            let i = 0
+
+            const openingBracketsIndex = data.indexOf("\{\{", 0)
+            if (openingBracketsIndex > -1) {
+                const closingBracketsIndex = data.indexOf("}}", 0)
+
+                if (openingBracketsIndex < closingBracketsIndex) {
+
+                    const templateVariable = data.substring(openingBracketsIndex + 2, closingBracketsIndex).trim().split(" ")[0]
+
+                    const currentStr = data.slice(0, openingBracketsIndex) + (templateVariable ? `#${templateVariable} ` : "");
+                    const trailing = replaceTemplateVariable(data.slice(closingBracketsIndex + 2))
+
+                    return currentStr + trailing
+                }
+            }
+            return data
+        }
+
+        function sanitizeInput(content) {
+            return DOMPurify.sanitize(content, {
+                FORCE_BODY: true,
+                ALLOWED_ATTR: ['style', 'class', 'type', 'href', 'rel'],
+                ALLOWED_TAGS: [
+                    'p',
+                    'h1',
+                    'h2',
+                    'style',
+                    'link',
+                    'figure',
+                    'table',
+                    'caption',
+                    'tr',
+                    'th',
+                    'tbody',
+                    'td',
+                ],
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
 
             const textarea = document.getElementById("codeEditor");
 
-            textarea.addEventListener("keyup", debounce((e) => {
-                console.log(e.target.value)
-            }
-                , 500
-            )
-            )
+            textarea.focus()
 
             const editor = CodeMirror.fromTextArea(textarea, {
                 mode: "htmlmixed",
@@ -141,23 +252,19 @@
 
             const previewPane = document.getElementById("previewPane");
 
-            Object.keys(DOMPurify).forEach((item) => {
-                console.log(item);
-                console.log(typeof DOMPurify[item])
-            });
-
             const updatePreview = () => {
                 const userInput = editor.getValue();
-                const sanitizedInput = DOMPurify.sanitize(userInput, {
-                    ALLOWED_TAGS: DOMPurify.getDefaultWhitelist.concat(['style']), // Add 'style' tag
-                    ALLOWED_ATTR: ["style", "class"] // Allow 'style' and 'class' attributes
-                });
-                if (previewPane) {
-                    previewPane.srcdoc = sanitizedInput
-                }
+
+                resolvedTemplate = replaceTemplateVariable(userInput, 0)
+
+                const sanitizedInput = sanitizeInput(resolvedTemplate)
+
+                previewPane.srcdoc = sanitizedInput
             }
 
             editor.on("change", debounce(updatePreview, 1000));
+
+            updatePreview()
         });
     </script>
 
