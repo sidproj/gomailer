@@ -17,24 +17,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/css/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/htmlmixed/htmlmixed.min.js"></script>
 
+    <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet"> -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.22/dist/full.min.css" rel="stylesheet" type="text/css" /> -->
+
+
     <style>
-        html,
-        body {
+        html {
             font-family: Arial, sans-serif;
             margin: 0px;
             padding: 0px;
             scroll-behavior: smooth;
             width: 100%;
-            height: 100%;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            width: calc(100% - 2rem);
-            height: 100%;
-            row-gap: 1rem;
         }
 
         /* width */
@@ -58,73 +52,56 @@
             background: #555;
         }
 
-        .editorContainer {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            column-gap: 1rem;
-            width: 100%;
-            height: 75%;
-        }
-
-        .codeEditorContainer {
-            width: 100%;
-            height: 100%;
-            overflow: scroll;
-            padding: 0 !important;
-        }
-
         .CodeMirror {
             height: 100%;
-        }
-
-        .previewPane {
-            width: 100%;
-        }
-
-        .variableContainer {
-            display: flex;
-            flex-direction: column;
-            row-gap: 0.5rem;
-        }
-
-        .variableItem {
-            display: flex;
-            flex-direction: row;
-            column-gap: 1rem;
-        }
-
-        .input {
-            width: fit-content;
-        }
-
-        .btn {
-            background-color: #555;
-            outline: none;
-            border-radius: 0.25rem;
-            border: none;
-            padding: 1rem;
-            color: white;
-            width: fit-content;
-            height: fit-content;
         }
     </style>
 </head>
 
-<body>
-    <div class="container">
-        <div class="variableContainer" id="variableContainer">
-            <h1>Set Variables </h1>
-            <button onclick="addVariable()" class="btn">Add new variable</button>
-            <div class="variableItem">
-                <input class="input" placeholder="Enter variable label" />
-                <input class="input" placeholder="Enter variable value" />
+<body class="flex flex-col w-full">
+
+    <div class="hidden w-full h-full bg-[#00000053] absolute top-0 left-0 z-10 flex-col items-center justify-center"
+        id="popupOverlay">
+        <div class="flex flex-col items-center justify-center p-[1rem] bg-[#fff] reounded w-fit gap-2">
+            <div class="flex flex-row justify-between w-full">
+                <div>Add template variable</div>
+                <div class="cursor-pointer p-2 bg-[grey] rounded text-[white]" onclick="handlePopUpdisplay(false)">close
+                </div>
+            </div>
+            <div class="flex flex-row gap-4 items-start w-full mt-2">
+                <div class="flex flex-col gap-2">
+                    <div>Enter template variable label</div>
+                    <input class="p-2 border-2" id="templateVariableLabel" onkeypress="hideError()" />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <div>Enter template variable value</div>
+                    <input class="p-2 border-2" id="templateVariableValue" onkeypress="hideError()" />
+                </div>
+            </div>
+            <div class="text-[red] hidden w-full" id="templateModalError">Please enter values and make sure labels are
+                unique*</div>
+            <button class="p-2 border-0 rounded outline-0 bg-[grey] text-[white] w-fit self-start"
+                onclick="addVariable()">Add
+            </button>
+        </div>
+    </div>
+    </div>
+
+    <div class="flex flex-col p-[1rem] w-full h-full gap-[1rem]">
+        <div class="flex flex-col gap-[0.5rem]" id="variableContainer">
+            <button onclick="handlePopUpdisplay(true)"
+                class="bg-[grey] outline-0 rounded p-[1rem] border-0 text-[white] w-fit h-fit">Add new variable</button>
+            <div class="flex flex-row gap-2 variableItem">
+                <div class="p-2 rounded border-2 w-[300px]">Template variable label</div>
+                <div class="p-2 rounded border-2 w-[300px]">Template variable value</div>
             </div>
 
         </div>
-        <h1>HTML Template Editor with Live Preview</h1>
-        <div class="editorContainer">
-            <div class="codeEditorContainer">
+        <div class="flex flex-row flex-wrap md:flex-nowrap">
+            <div class="w-[100%] overflow-scroll p-0">
+                {{ if .templateContent }}
+                <textarea id="codeEditor">{{ .templateContent}}</textarea>
+                {{ else }}
                 <textarea id="codeEditor">
 <!-- template code for iframe start -->
 <!DOCTYPE html>
@@ -147,11 +124,14 @@
 </body>
 
 </html>
+
 <!-- template code for iframe end -->
                 </textarea>
+                {{ end }}
             </div>
-            <iframe id="previewPane" class="previewPane" style="width: 100%; border: 1px solid #ccc;" sandbox></iframe>
+            <iframe id="previewPane" class="w-[100%] overflow-scroll p-0 border-2" sandbox></iframe>
         </div>
+        <div class="text-[white] bg-[grey] p-2 rounded w-fit cursor-pointer" onclick="handleTemplateSubmit()">Save</div>
     </div>
 
     <!-- dom purify library for xss vulnerabilities -->
@@ -161,6 +141,7 @@
 
     <script>
 
+        let editor = null
         const templateVariableMap = {}
 
         const variableInputForClone = document.getElementsByClassName("variableItem")[0];
@@ -169,14 +150,58 @@
 
         let inputFields = document.getElementsByClassName("variableItem")
 
-        function addVariable() {
-            const newInput = variableInputForClone.cloneNode(true);
 
-            parent.appendChild(newInput)
+        function hideError() {
+            document.getElementById("templateModalError").style.display = "none"
         }
 
-        function updateTemplateLabelMap(e) {
+        function handlePopUpdisplay(doDisplay) {
+            const popUpElement = document.getElementById("popupOverlay");
+            if (doDisplay) {
+                document.body.style.overflow = "hidden";
+                popUpElement.style.display = "flex";
+            } else {
+                document.getElementById("templateVariableLabel").value = ""
+                document.getElementById("templateVariableValue").value = ""
+                document.body.style.overflow = "scroll";
+                popUpElement.style.display = "none";
+            }
+        }
 
+        function addVariable() {
+            const newInput = variableInputForClone.cloneNode(true);
+            const label = document.getElementById("templateVariableLabel").value
+            const value = document.getElementById("templateVariableValue").value
+            if (!label || !value) {
+                document.getElementById("templateModalError").style.display = "flex"
+                return;
+            }
+            const parent = document.getElementById("variableContainer");
+            newInput.children[0].innerHTML = label;
+            newInput.children[1].innerHTML = value;
+
+            if (Object.keys(templateVariableMap).includes(label)) {
+                document.getElementById("templateModalError").style.display = "flex"
+                return;
+            }
+
+            const removeButton = document.createElement("button");
+            removeButton.innerText = "Delete"
+            removeButton.className = "p-2 border-2 bg-[grey] text-[white]"
+            removeButton.onclick = function () {
+                parent.removeChild(newInput)
+                delete templateVariableMap[label]
+                console.log(templateVariableMap)
+            }
+
+            newInput.appendChild(removeButton)
+
+            parent.appendChild(newInput)
+
+            templateVariableMap[label] = value
+
+            handlePopUpdisplay(false)
+            updatePreview()
         }
 
         function debounce(func, duration) {
@@ -185,10 +210,6 @@
                 clearTimeout(timer);
                 timer = setTimeout(() => func(...args), duration);
             }
-        }
-
-        function updateTemplateVariables() {
-            inputFields = document.getElementsByClassName("variableItem");
         }
 
         function replaceTemplateVariable(content) {
@@ -207,7 +228,10 @@
 
                     const templateVariable = data.substring(openingBracketsIndex + 2, closingBracketsIndex).trim().split(" ")[0]
 
-                    const currentStr = data.slice(0, openingBracketsIndex) + (templateVariable ? `#${templateVariable} ` : "");
+                    const currentStr = data.slice(0, openingBracketsIndex) +
+                        (templateVariableMap[templateVariable] ?
+                            `${templateVariableMap[templateVariable]} `
+                            : `<span>#no_value </span>`);
                     const trailing = replaceTemplateVariable(data.slice(closingBracketsIndex + 2))
 
                     return currentStr + trailing
@@ -225,6 +249,7 @@
                     'h1',
                     'h2',
                     'style',
+                    'span',
                     'link',
                     'figure',
                     'table',
@@ -237,13 +262,29 @@
             });
         }
 
+        function updatePreview() {
+            const userInput = editor.getValue();
+
+            resolvedTemplate = replaceTemplateVariable(userInput, 0)
+
+            const sanitizedInput = sanitizeInput(resolvedTemplate)
+
+            previewPane.srcdoc = sanitizedInput
+
+        }
+
+        function getSanitizedInput() {
+            const userInput = editor.getValue();
+            return sanitizeInput(userInput)
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
 
             const textarea = document.getElementById("codeEditor");
 
             textarea.focus()
 
-            const editor = CodeMirror.fromTextArea(textarea, {
+            editor = CodeMirror.fromTextArea(textarea, {
                 mode: "htmlmixed",
                 lineNumbers: true,
                 tabSize: 4,
@@ -252,20 +293,26 @@
 
             const previewPane = document.getElementById("previewPane");
 
-            const updatePreview = () => {
-                const userInput = editor.getValue();
-
-                resolvedTemplate = replaceTemplateVariable(userInput, 0)
-
-                const sanitizedInput = sanitizeInput(resolvedTemplate)
-
-                previewPane.srcdoc = sanitizedInput
-            }
-
             editor.on("change", debounce(updatePreview, 1000));
 
             updatePreview()
         });
+
+        async function handleTemplateSubmit() {
+            let formData = new FormData();
+            formData.append('templateContent', getSanitizedInput());
+            formData.append('templateVariables', Object.keys(templateVariableMap) || null)
+
+            const response = await fetch("/template",
+                {
+                    body: formData,
+                    method: "post"
+                });
+            const body = await response.json();
+            console.log(body);
+            previewPane.srcdoc = body.content;
+        }
+
     </script>
 
 </body>

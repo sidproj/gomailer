@@ -6,6 +6,7 @@ import (
 	"gomailer/utils"
 	"html/template"
 	"net/http"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -68,6 +69,8 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 
 	users,err := userModel.Find(filter)
 
+	fmt.Println(users)
+
 	if err != nil{
 		sendLoginError(err.Error())
 		return		
@@ -82,7 +85,7 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 	// return login page with error if error
 	fmt.Println("login success")
 
-	jwtToken,err := utils.GenerateJWT(lg.Email)
+	jwtToken,err := utils.GenerateJWT(users[0].ID.Hex())
 	if err != nil{
 		sendLoginError("Error while creating jwt:"+err.Error())
 		return
@@ -112,7 +115,7 @@ func RegisterControllerPost(w http.ResponseWriter,r *http.Request){
 	rg := RegisterData{
 		FirstName: r.FormValue("FirstName"),
 		LastName: r.FormValue("LastName"),
-		Email: r.FormValue("Email"),
+		Email: strings.ToLower(r.FormValue("Email")),
 		Password: r.FormValue("Password"),
 		ConfirmPassword: r.FormValue("Confirm Password")}
 

@@ -52,7 +52,7 @@ func (collection *GenericCollectionModel[T])Save(model interface{})error{
         if err!= nil {
             error_code := strings.Split(strings.Split(err.Error(), "[")[1], " ")[0]
             if error_code == "E11000"{
-                return errors.New("email already exists")
+                return errors.New("document with same unique field already exists")
             }
             return err
         }

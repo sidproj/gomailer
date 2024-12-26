@@ -32,7 +32,7 @@ func AuthMiddlewareUser(next func(w http.ResponseWriter, r *http.Request))func(w
 			return
 		}
 
-		r.Header.Add("user_email",user_email)
+		r.Header.Add("user_id",user_email)
 		next(w,r)
 	}
 }

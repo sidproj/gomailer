@@ -40,9 +40,9 @@ func addingRoutes(){
 	router.Post("/register",controller.RegisterControllerPost)
 
 	// template testing
-	router.Get("/template",controller.CreateTemplateControllerGET)
-
-	router.Get("/secret",middleware.AuthMiddlewareUser(controller.HomeController))
+	router.Get("/template",middleware.AuthMiddlewareUser(controller.CreateTemplateControllerGET))
+	router.Post("/template",middleware.AuthMiddlewareUser(controller.CreateTemplateControllerPOST))
+	router.Get("/template/edit",middleware.AuthMiddlewareUser(controller.EditTemplateControllerGET))
 }
 
 func loadModels(){
