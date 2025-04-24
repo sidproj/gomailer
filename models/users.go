@@ -23,7 +23,7 @@ func GetUserModel()(*mango.GenericCollectionModel[UserSchema],error){
 	}
 
 	model := mango.CreateModel[UserSchema]("users")
-	if err:=model.CreateIndex("email");err!=nil{
+	if err:=model.CreateIndex([]string{"email"});err!=nil{
 		return nil,err
 	}
 	userModel = &model

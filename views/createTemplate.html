@@ -88,6 +88,12 @@
     </div>
 
     <div class="flex flex-col p-[1rem] w-full h-full gap-[1rem]">
+        {{ if .templateName }}
+        <input class="p-2 border-2 w-fit" id="templateName" placeholder="Template name" value="{{.templateName}}" />
+        {{ else }}
+        <input class="p-2 border-2 w-fit" id="templateName" placeholder="Template name" />
+        {{end}}
+
         <div class="flex flex-col gap-[0.5rem]" id="variableContainer">
             <button onclick="handlePopUpdisplay(true)"
                 class="bg-[grey] outline-0 rounded p-[1rem] border-0 text-[white] w-fit h-fit">Add new variable</button>
@@ -302,15 +308,25 @@
             let formData = new FormData();
             formData.append('templateContent', getSanitizedInput());
             formData.append('templateVariables', Object.keys(templateVariableMap) || null)
+            formData.append('templateName', document.getElementById("templateName").value)
 
-            const response = await fetch("/template",
+            const urlString = window.location.search; // Gets the query string part of the URL
+            const urlParams = new URLSearchParams(urlString);
+
+            const template_id = urlParams.get('template_id');
+
+            const endpoint = template_id ? `/template/edit?template_id=${template_id}` : "/template/create"
+
+            const response = await fetch(endpoint,
                 {
                     body: formData,
                     method: "post"
                 });
             const body = await response.json();
+            if (body.content) {
+                previewPane.srcdoc = body.content;
+            }
             console.log(body);
-            previewPane.srcdoc = body.content;
         }
 
     </script>

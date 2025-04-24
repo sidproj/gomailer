@@ -13,8 +13,49 @@ import (
 )
 
 type TemplateData struct{
-	templateContent string
-	templateVariables []string
+	TemplateContent string
+	TemplateName string
+	TemplateVariables []string
+	ID string
+}
+
+func TemplateControllerGET(w http.ResponseWriter,r * http.Request){
+	templateModal,err := models.GetTemplateModel()
+	
+	if(err!=nil){
+		fmt.Println(err.Error())
+		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		return
+	}
+
+	filter := bson.M{}
+
+	templates,err := templateModal.Find(filter)
+
+	if(err!=nil){
+		fmt.Println(err.Error())
+		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		return
+	}
+
+	templateData := map[string]interface{}{
+		"templateList":[]interface{}{},
+	}
+
+	for _,val := range templates{
+		newTemplate := map[string]interface{}{
+			"id":val.ID.Hex(),
+			"name":val.Name,
+		}
+
+		templateData["templateList"] = append(
+			templateData["templateList"].([]interface{}),
+			newTemplate)
+	}
+	
+	t,_ := template.ParseFiles("views\\templates.html")
+	t.Execute(w,templateData)
+
 }
 
 func CreateTemplateControllerGET(w http.ResponseWriter,r * http.Request){
@@ -26,17 +67,17 @@ func CreateTemplateControllerGET(w http.ResponseWriter,r * http.Request){
 
 func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 
-
 	templateData := TemplateData{
-		templateContent: strings.Trim(r.FormValue("templateContent")," "),
-		templateVariables: []string{},
+		TemplateContent: strings.Trim(r.FormValue("templateContent")," "),
+		TemplateVariables: []string{},
+		TemplateName: strings.Trim(r.FormValue("templateName")," "),
 	}
 	
 	variables := strings.Split(r.FormValue("templateVariables"),",")
 
 	for _,vars:=range variables {
 		if(len(vars)>0){
-			templateData.templateVariables = append(templateData.templateVariables,vars)
+			templateData.TemplateVariables = append(templateData.TemplateVariables,vars)
 		}
 	}
 
@@ -45,31 +86,53 @@ func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 
 	userID,err := primitive.ObjectIDFromHex(r.Header.Get("user_id"))
 
-	templateError := sendError(w,"views\\login.html")
-
 	if(err!=nil){
-		templateError("template creation error: error while getting user_id from request header. "+err.Error())
+		errorMap := map[string]string{
+			"error":"no user found!",
+			"redirect":"/login",
+		}
+
+		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
 	templateModel,err := models.GetTemplateModel()
 
 	if(err!=nil){
-		templateError("template creation error: error while getting template model. "+err.Error())
+		errorMap := map[string]string{
+			"error":"error while getting template modal",
+		}
+
+		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
 	template := models.TemplateSchema{
 		UserID : userID,
-		TemplateContent: templateData.templateContent,
-		TemplateVariables: templateData.templateVariables,
+		Name: templateData.TemplateName,
+		TemplateContent: strings.Trim(templateData.TemplateContent," "),
+		TemplateVariables: templateData.TemplateVariables,
 	}
 
-	fmt.Println(templateData.templateVariables)
-	fmt.Println("variables",templateData.templateVariables)
+	err = template.Validate()
 
-	if err:=templateModel.Save(template);err!=nil{
-		templateError("template creation error: error while saving template. "+err.Error())
+	if(err!=nil){
+		errorMap := map[string]string{
+			"error":"error while saving template",
+			"description":err.Error(),
+		}
+        fmt.Print(err.Error())
+		json.NewEncoder(w).Encode(errorMap)
+		return
+	}
+
+	if err:=templateModel.Save(&template);err!=nil{
+		errorMap := map[string]string{
+			"error":"error while saving template",
+			"description":err.Error(),
+		}
+        fmt.Print(err.Error())
+		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
@@ -123,7 +186,78 @@ func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
 
 	templateData := map[string]interface{}{
 		"templateContent":data[0].TemplateContent,
+		"templateName":data[0].Name,
 	}
 	t,_ := template.ParseFiles("views\\createTemplate.html")
 	t.Execute(w,templateData)
+}
+
+func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
+	
+	templateID := r.URL.Query().Get("template_id")
+
+	if(templateID == ""){
+		http.Redirect(w,r,"/template",http.StatusSeeOther)
+	}
+
+	templateData := TemplateData{
+		TemplateContent: strings.Trim(r.FormValue("templateContent")," "),
+		TemplateName: strings.Trim(r.FormValue("templateName")," "),
+		TemplateVariables: []string{},
+	}
+
+	variables := strings.Split(r.FormValue("templateName"),",")
+
+	for _,vars:=range variables{
+		if(len(vars)>0){
+			templateData.TemplateVariables = append(templateData.TemplateVariables, vars)
+		}
+	}
+
+	templateModel,err := models.GetTemplateModel()
+
+	if(err!=nil){
+		errorMap := map[string]string{
+			"error":"error while getting template modal",
+		}
+
+		json.NewEncoder(w).Encode(errorMap)
+		return
+	}
+
+	oldTemplate,err := templateModel.FindById(templateID)
+
+	if(err != nil){
+		errorMap := map[string]string{
+			"error":"error while finding template",
+			"description":err.Error(),
+		}
+        fmt.Print(err.Error())
+		json.NewEncoder(w).Encode(errorMap)
+		return
+	}
+
+	oldTemplate.Name = templateData.TemplateName
+	oldTemplate.TemplateContent = templateData.TemplateContent
+	oldTemplate.TemplateVariables = templateData.TemplateVariables
+
+	if err:= templateModel.Save(&oldTemplate);err!=nil{
+		errorMap := map[string]string{
+			"error":"error while updating template",
+			"description":err.Error(),
+		}
+        fmt.Print(err.Error())
+		json.NewEncoder(w).Encode(errorMap)
+		return
+	}
+
+	fmt.Println("Updated the existing template successfully")
+
+	tempMap := make(map[string]interface{})
+
+	tempMap["content"] = oldTemplate.TemplateContent
+	tempMap["variables"] = oldTemplate.TemplateVariables
+
+    json.NewEncoder(w).Encode(tempMap)
+
 }

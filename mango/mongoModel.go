@@ -24,7 +24,7 @@ type GenericCollectionModel[T any] struct {
 // checks if the parameter is sturct, returns error if not.
 // If the struct has ID filed populated then it updates document with the struct.
 // Else inserts a new document into the collection and set's its ID in the struct passed.
-func (collection *GenericCollectionModel[T])Save(model interface{})error{
+func (collection *GenericCollectionModel[T])Save(model* T)error{
 
 	reflectedModel := reflect.ValueOf(model)
     
@@ -51,15 +51,21 @@ func (collection *GenericCollectionModel[T])Save(model interface{})error{
 
         if err!= nil {
             error_code := strings.Split(strings.Split(err.Error(), "[")[1], " ")[0]
+            
+            fmt.Print(err.Error())
+            
             if error_code == "E11000"{
-                return errors.New("document with same unique field already exists")
+                return errors.New("E11000")
             }
             return err
         }
 
         // update id in struct
         if idField.CanSet() && result.InsertedID != nil{
+            fmt.Println("did set the id")
             idField.Set(reflect.ValueOf(result.InsertedID))
+        }else{
+            fmt.Println("did not set the id",idField.CanSet(),result.InsertedID != nil)
         }
 
         // remove later
@@ -134,9 +140,9 @@ func (collection *GenericCollectionModel[T])FindById(id string)(T,error){
     return model,nil
 }
 
-func (collection *GenericCollectionModel[T])CreateIndex(field string) error{
+func (collection *GenericCollectionModel[T])CreateIndex(fields []string) error{
     
-    err := dbClient.createCollectionIndex(collection.collectionName,field)
+    err := dbClient.createCollectionIndex(collection.collectionName,fields)
     if err != nil{
         return err
     }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet"> -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.22/dist/full.min.css" rel="stylesheet" type="text/css" /> -->
+
+    <style>
+        html {
+            font-family: Arial, sans-serif;
+            margin: 0px;
+            padding: 0px;
+            scroll-behavior: smooth;
+            width: 100%;
+        }
+
+        /* width */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f100;
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            background: #88888889;
+            border-radius: 1rem;
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+    </style>
+</head>
+
+<body class="flex flex-col w-full gap-2 p-4">
+    {{ if .templateList }}
+    {{range $template := .templateList }}
+    <a href="/template/edit?template_id={{$template.id}}">
+        <div class="bg-[#555] p-2 w-fit text-white">{{$template.name}}</div>
+    </a>
+    {{end}}
+    {{ end }}
+</body>
+
+</html>

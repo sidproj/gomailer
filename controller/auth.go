@@ -43,7 +43,7 @@ func sendError(w http.ResponseWriter,template_path string) func(error string) {
 	}
 }
 
-func LoginControllerGet(w http.ResponseWriter, r *http.Request) {
+func LoginControllerGET(w http.ResponseWriter, r *http.Request) {
 	e := ErrorData{Error:""}
 	t,_ := template.ParseFiles(login_html)
 	t.Execute(w,e)
@@ -105,13 +105,13 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 	http.Redirect(w,r,"/",http.StatusSeeOther)
 }
 
-func RegisterControllerGet(w http.ResponseWriter, r *http.Request){
+func RegisterControllerGET(w http.ResponseWriter, r *http.Request){
 	e := ErrorData{Error:""}
 	t,_ := template.ParseFiles(register_html)
 	t.Execute(w,e)
 }
 
-func RegisterControllerPost(w http.ResponseWriter,r *http.Request){
+func RegisterControllerPOST(w http.ResponseWriter,r *http.Request){
 	rg := RegisterData{
 		FirstName: r.FormValue("FirstName"),
 		LastName: r.FormValue("LastName"),
@@ -149,11 +149,26 @@ func RegisterControllerPost(w http.ResponseWriter,r *http.Request){
 		Password: hashedPassword,
 	}
 
-	if err:=userModel.Save(user);err!=nil{
+	if err:=userModel.Save(&user);err!=nil{
+		if(err.Error() == "E11000"){
+			sendRegisterError(fmt.Sprintf("Account already exists for email %s. Try different email!",user.Email))
+		}
 		sendRegisterError(err.Error())
 		return
 	}
 
-	http.Redirect(w,r,"/",http.StatusSeeOther)
+	cookie := http.Cookie{
+		Name:     "auth_jwt",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   0,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w,&cookie)
+
+	http.Redirect(w,r,"/login",http.StatusSeeOther)
 
 }

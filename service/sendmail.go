@@ -2,14 +2,14 @@ package service
 
 import (
 	"fmt"
+	"gomailer/utils"
 	"net/smtp"
 	"os"
 )
 
 var (
-    smtpServerAddr = "email-smtp.eu-north-1.amazonaws.com"
-    smtpServerPort = "587"
-    senderEmail = "sidharajdsa@gmail.com"
+    smtpServerAddr = utils.GetEnvVariable("AWS_SMTP_SERVER_ADDR")
+    smtpServerPort = utils.GetEnvVariable("ASW_SMTP_SERVER_PORT")
 )
 
 func SetupSMTPAuth(username string, password string, serverAddr string)smtp.Auth{
@@ -20,13 +20,12 @@ func SetupSMTPAuth(username string, password string, serverAddr string)smtp.Auth
     }
     fmt.Println("Authentication requested.")
    auth := smtp.PlainAuth("", username, password, serverAddr)
-   fmt.Printf("auth:%v",auth)
    fmt.Println("Authenticated successfuly!")
    return auth
 }
 
 // SendMail sends an email using the provided parameters.
-func SendMail(auth smtp.Auth,to []string, subject, body string) error {
+func SendMail(auth smtp.Auth,to []string, subject, body,senderEmail string) error {
     msg := []byte(fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, body))
     err := smtp.SendMail(smtpServerAddr+":"+smtpServerPort, auth, senderEmail, to, msg)
    
