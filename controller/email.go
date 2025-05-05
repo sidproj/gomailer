@@ -83,13 +83,13 @@ func SendEmailControllerPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(template)
-
-	json.NewEncoder(w).Encode(template)
-	return
+	replaceContent := utils.ReplaceTemplateVariables(template[0].TemplateContent,data.TemplateVariables)
+	fmt.Printf("Data: %s",replaceContent)
+	// json.NewEncoder(w).Encode(template)
+	// return
 
 	to := []string{"morisidhraj001@gmail.com"}
-	err = service.SendMail(auth, to, "tesing", "Hello world!","sidharajdsa@gmail.com")
+	err = service.SendMail(auth, to, "tesing replacement", replaceContent,"sidharajdsa@gmail.com")
 	if err != nil {
 		fmt.Fprintf(w, "An error occured: %s", err.Error())
 		return

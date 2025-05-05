@@ -5,6 +5,7 @@ import (
 	"gomailer/utils"
 	"net/smtp"
 	"os"
+	"strings"
 )
 
 var (
@@ -26,7 +27,15 @@ func SetupSMTPAuth(username string, password string, serverAddr string)smtp.Auth
 
 // SendMail sends an email using the provided parameters.
 func SendMail(auth smtp.Auth,to []string, subject, body,senderEmail string) error {
-    msg := []byte(fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, body))
+
+    mime := "MIME-version: 1.0\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n"
+    // formatedSubject := fmt.Sprintf("Subject: %s\r\n\r\n",subject)
+
+    headers := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n%s\r\n", 
+        senderEmail, strings.Join(to, ","), subject, mime)
+    
+
+    msg := []byte(headers + body)
     err := smtp.SendMail(smtpServerAddr+":"+smtpServerPort, auth, senderEmail, to, msg)
    
     if err != nil {
