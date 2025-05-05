@@ -40,7 +40,7 @@ func wrapper(path string,methods handlers) func (w http.ResponseWriter,r *http.R
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}else if r.Method == "POST"{
-			if methods.get != nil{
+			if methods.post != nil{
 				methods.post(w,r)
 				return
 			}else{

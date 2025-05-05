@@ -6,6 +6,7 @@ import (
 	"gomailer/utils"
 	"html/template"
 	"net/http"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -42,7 +43,7 @@ func sendError(w http.ResponseWriter,template_path string) func(error string) {
 	}
 }
 
-func LoginControllerGet(w http.ResponseWriter, r *http.Request) {
+func LoginControllerGET(w http.ResponseWriter, r *http.Request) {
 	e := ErrorData{Error:""}
 	t,_ := template.ParseFiles(login_html)
 	t.Execute(w,e)
@@ -68,6 +69,8 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 
 	users,err := userModel.Find(filter)
 
+	fmt.Println(users)
+
 	if err != nil{
 		sendLoginError(err.Error())
 		return		
@@ -82,7 +85,7 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 	// return login page with error if error
 	fmt.Println("login success")
 
-	jwtToken,err := utils.GenerateJWT(lg.Email)
+	jwtToken,err := utils.GenerateJWT(users[0].ID.Hex())
 	if err != nil{
 		sendLoginError("Error while creating jwt:"+err.Error())
 		return
@@ -102,17 +105,17 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 	http.Redirect(w,r,"/",http.StatusSeeOther)
 }
 
-func RegisterControllerGet(w http.ResponseWriter, r *http.Request){
+func RegisterControllerGET(w http.ResponseWriter, r *http.Request){
 	e := ErrorData{Error:""}
 	t,_ := template.ParseFiles(register_html)
 	t.Execute(w,e)
 }
 
-func RegisterControllerPost(w http.ResponseWriter,r *http.Request){
+func RegisterControllerPOST(w http.ResponseWriter,r *http.Request){
 	rg := RegisterData{
 		FirstName: r.FormValue("FirstName"),
 		LastName: r.FormValue("LastName"),
-		Email: r.FormValue("Email"),
+		Email: strings.ToLower(r.FormValue("Email")),
 		Password: r.FormValue("Password"),
 		ConfirmPassword: r.FormValue("Confirm Password")}
 
@@ -146,11 +149,26 @@ func RegisterControllerPost(w http.ResponseWriter,r *http.Request){
 		Password: hashedPassword,
 	}
 
-	if err:=userModel.Save(user);err!=nil{
+	if err:=userModel.Save(&user);err!=nil{
+		if(err.Error() == "E11000"){
+			sendRegisterError(fmt.Sprintf("Account already exists for email %s. Try different email!",user.Email))
+		}
 		sendRegisterError(err.Error())
 		return
 	}
 
-	http.Redirect(w,r,"/",http.StatusSeeOther)
+	cookie := http.Cookie{
+		Name:     "auth_jwt",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   0,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w,&cookie)
+
+	http.Redirect(w,r,"/login",http.StatusSeeOther)
 
 }

@@ -11,35 +11,24 @@ import (
 	"net/http"
 )
 
-/*
-var (
-    authUserName = goDotEnvVariable("AWS_SMTP_USERNAME")
-    authPassword = goDotEnvVariable("AWS_SMTP_PASSWORD")
-	auth=service.SetupSMTPAuth(authUserName,authPassword,"email-smtp.eu-north-1.amazonaws.com")
-)
-
-func handler1(w http.ResponseWriter,r *http.Request){
-	to := []string{"morisidhraj001@gmail.com"}
-	err := service.SendMail(auth,to,"tesing","Hello world!")
-	if(err != nil){
-		fmt.Fprintf(w,"An error occured: %s",err.Error())
-		return
-	}
-	fmt.Fprintf(w,"Email sent successfully!")
-}
-*/
-
-
 func addingRoutes(){
-	// router.Get("/",handler1)
 	router.Get("/",controller.HomeController)
-	router.Get("/login",controller.LoginControllerGet)
+	router.Get("/login",controller.LoginControllerGET)
 	router.Post("/login",controller.LoginControllerPOST)
 
-	router.Get("/register",controller.RegisterControllerGet)
-	router.Post("/register",controller.RegisterControllerPost)
+	router.Get("/register",controller.RegisterControllerGET)
+	router.Post("/register",controller.RegisterControllerPOST)
 
-	router.Get("/secret",middleware.AuthMiddlewareUser(controller.HomeController))
+	// template testing
+	router.Get("/template",middleware.AuthMiddlewareUser(controller.TemplateControllerGET))
+	router.Get("/template/create",middleware.AuthMiddlewareUser(controller.CreateTemplateControllerGET))
+	router.Post("/template/create",middleware.AuthMiddlewareUser(controller.CreateTemplateControllerPOST))
+	router.Get("/template/edit",middleware.AuthMiddlewareUser(controller.EditTemplateControllerGET))
+	router.Post("/template/edit",middleware.AuthMiddlewareUser(controller.EditTemplateControllerPOST))
+
+	// send mail testing
+	router.Post("/sendmail",middleware.AuthMiddlewareUser(controller.SendEmailControllerPOST))
+	
 }
 
 func loadModels(){

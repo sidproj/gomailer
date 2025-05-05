@@ -158,22 +158,30 @@ func (dbClient *MongoDbClient)Save(collection string,model interface{})error{
     return nil
 }
 
-func (dbClient *MongoDbClient)createCollectionIndex (collection string,field string)error{
+func (dbClient *MongoDbClient)createCollectionIndex (collection string,fields []string)error{
     coll := dbClient.getDatabase().Collection(collection)
     
     ctx, cancel := context.WithTimeout(context.Background(), 
                                 10 * time.Second)
     defer cancel()
 
-    fieldIndex := mongo.IndexModel{
-        Keys:bson.M{field:1},
-        Options: options.Index().SetUnique(true).SetName("Unique_"+field),
-    }
+    fields_map := bson.D{}
+    index_name := "Unique"
 
+    for _,val := range fields{
+        fields_map=append(fields_map, bson.E{Key:val,Value: 1})
+        index_name += "_"+val
+    } 
+
+    fieldIndex := mongo.IndexModel{
+        Keys:fields_map,
+        Options: options.Index().SetUnique(true).SetName(index_name),
+    }
 
     _,err := coll.Indexes().CreateOne(ctx,fieldIndex)
     if err != nil{
-        fmt.Printf("Error while creting index for %s field for collection %s",field,collection)
+        fmt.Printf("Error while creating index for %s field for collection %s\n",fields,collection)
+        fmt.Println(err.Error())
         return err
     }
     return nil

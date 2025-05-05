@@ -9,9 +9,9 @@ import (
 
 const secretKey = "Hello world"
 
-func GenerateJWT(userEmail string)(string,error) {
+func GenerateJWT(userID string)(string,error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,jwt.MapClaims{
-		"user_email":userEmail,
+		"user_id":userID,
 		"exp":time.Now().Add(time.Hour * 24).Unix(),
 	})
 	tokenString,err := token.SignedString([]byte(secretKey))
@@ -39,10 +39,10 @@ func VerifyJWT(JWTToken string) (string,error){
 		return "", fmt.Errorf("could not parse claims")
 	}
 
-	userEmail, ok := claims["user_email"].(string)
+	userID, ok := claims["user_id"].(string)
 	if !ok {
 		return "", fmt.Errorf("user_id not found or invalid type")
 	}
 
-	return userEmail, nil
+	return userID, nil
 }
