@@ -187,6 +187,7 @@ func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
 	templateData := map[string]interface{}{
 		"templateContent":data[0].TemplateContent,
 		"templateName":data[0].Name,
+		"templateVariables":strings.Join(data[0].TemplateVariables,","),
 	}
 	t,_ := template.ParseFiles("views\\createTemplate.html")
 	t.Execute(w,templateData)
@@ -206,7 +207,9 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 		TemplateVariables: []string{},
 	}
 
-	variables := strings.Split(r.FormValue("templateName"),",")
+	variables := strings.Split(r.FormValue("templateVariables"),",")
+
+	fmt.Println("variable:",variables)
 
 	for _,vars:=range variables{
 		if(len(vars)>0){

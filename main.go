@@ -27,7 +27,8 @@ func addingRoutes(){
 	router.Post("/template/edit",middleware.AuthMiddlewareUser(controller.EditTemplateControllerPOST))
 
 	// send mail testing
-	router.Post("/sendmail",middleware.AuthMiddlewareUser(controller.SendEmailControllerPOST))
+	// this endpoint will be available to other websites
+	router.Post("/sendmail",controller.SendEmailControllerPOST)
 	
 }
 

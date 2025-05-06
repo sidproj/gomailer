@@ -174,10 +174,8 @@
             }
         }
 
-        function addVariable() {
+        function handleAddVariable(label, value) {
             const newInput = variableInputForClone.cloneNode(true);
-            const label = document.getElementById("templateVariableLabel").value
-            const value = document.getElementById("templateVariableValue").value
             if (!label || !value) {
                 document.getElementById("templateModalError").style.display = "flex"
                 return;
@@ -197,15 +195,16 @@
             removeButton.onclick = function () {
                 parent.removeChild(newInput)
                 delete templateVariableMap[label]
-                console.log(templateVariableMap)
             }
-
             newInput.appendChild(removeButton)
-
             parent.appendChild(newInput)
-
             templateVariableMap[label] = value
+        }
 
+        function addVariable() {
+            const label = document.getElementById("templateVariableLabel").value
+            const value = document.getElementById("templateVariableValue").value
+            handleAddVariable(label, value)
             handlePopUpdisplay(false)
             updatePreview()
         }
@@ -254,6 +253,10 @@
                     'p',
                     'h1',
                     'h2',
+                    'h3',
+                    'h4',
+                    'h5',
+                    'h6',
                     'style',
                     'span',
                     'link',
@@ -310,6 +313,8 @@
             formData.append('templateVariables', Object.keys(templateVariableMap) || null)
             formData.append('templateName', document.getElementById("templateName").value)
 
+            console.log(Object.keys(templateVariableMap));
+
             const urlString = window.location.search; // Gets the query string part of the URL
             const urlParams = new URLSearchParams(urlString);
 
@@ -329,6 +334,15 @@
             console.log(body);
         }
 
+    </script>
+
+    <script>
+        if ("{{.templateVariables}}") {
+            const templateVariables = "{{.templateVariables}}".split(",");
+            templateVariables.forEach((templateVar) => {
+                handleAddVariable(templateVar, "#no_value");
+            })
+        }
     </script>
 
 </body>
