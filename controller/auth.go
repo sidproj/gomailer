@@ -69,8 +69,6 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 
 	users,err := userModel.Find(filter)
 
-	fmt.Println(users)
-
 	if err != nil{
 		sendLoginError(err.Error())
 		return		
