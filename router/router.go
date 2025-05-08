@@ -47,7 +47,11 @@ func wrapper(path string,methods handlers) func (w http.ResponseWriter,r *http.R
 				fmt.Fprintf(w,"Invalid route")
 				w.WriteHeader(http.StatusInternalServerError)
 			}
+		}else if r.Method == http.MethodOptions {
+			methods.post(w,r)
+			return
 		}else{
+			fmt.Println("In invalid route",r.Method)
 			fmt.Fprintf(w,"Invalid route")
 			w.WriteHeader(http.StatusInternalServerError)
 		}
