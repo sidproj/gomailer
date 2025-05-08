@@ -106,7 +106,7 @@ func SendEmailControllerPOST(w http.ResponseWriter, r *http.Request) {
 
 	template,err := templateModel.Find(filter)
 
-	if(err != nil){
+	if(err != nil || len(template) == 0){
 		errorMap := map[string]string{
 			"error":"error while finding template",
 		}
