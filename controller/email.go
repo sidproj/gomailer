@@ -15,7 +15,8 @@ import (
 var (
     authUserName = utils.GetEnvVariable("AWS_SMTP_USERNAME")
     authPassword = utils.GetEnvVariable("AWS_SMTP_PASSWORD")
-	auth=service.SetupSMTPAuth(authUserName,authPassword,"email-smtp.eu-north-1.amazonaws.com")
+	authServerAddr = utils.GetEnvVariable("AWS_SMTP_SERVER_ADDR")
+	auth=service.SetupSMTPAuth(authUserName,authPassword,authServerAddr)
 )
 
 type SendEmailData struct {
