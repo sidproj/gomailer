@@ -10,7 +10,7 @@ import (
 	"log"
 	"net/http"
 )
-
+ 
 func addingRoutes(){
 	router.Get("/",controller.HomeController)
 	router.Get("/login",controller.LoginControllerGET)
@@ -51,6 +51,8 @@ func main(){
 	loadModels()
 
 	fmt.Println("Server is running at http://localhost:8080")
+	// Serve static assets like images, CSS, JS
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	log.Fatal(http.ListenAndServe(":8080",nil))
 
 }

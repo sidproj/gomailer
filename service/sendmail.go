@@ -19,10 +19,10 @@ func SetupSMTPAuth(username string, password string, serverAddr string)smtp.Auth
         os.Exit(0)
         fmt.Printf("%s \n%s \n%s \n",username,password,serverAddr)
     }
-    fmt.Println("Authentication requested.")
-   auth := smtp.PlainAuth("", username, password, serverAddr)
-   fmt.Println("Authenticated successfuly!")
-   return auth
+    fmt.Println("AWS SES Authentication requested.")
+    auth := smtp.PlainAuth("", username, password, serverAddr)
+    fmt.Println("AWS SES Authenticated successfuly!")
+    return auth
 }
 
 // SendMail sends an email using the provided parameters.

@@ -8,6 +8,8 @@ import (
 type handlers struct{
 	get func(w http.ResponseWriter,r *http.Request)
 	post func(w http.ResponseWriter,r *http.Request)
+	put func(w http.ResponseWriter,r *http.Request)
+	delete func(w http.ResponseWriter,r *http.Request)
 }
 
 var routes = map[string]handlers{}
@@ -24,6 +26,18 @@ func Post(path string,handler func(w http.ResponseWriter,r *http.Request)){
 	routes[path] = h
 }
 
+func Put(path string,handler func(w http.ResponseWriter,r *http.Request)){
+	h:=routes[path]
+	h.post = handler
+	routes[path] = h
+}
+
+func Delete(path string,handler func(w http.ResponseWriter, r *http.Request)){
+	h:=routes[path]
+	h.post = handler
+	routes[path] = h
+}
+
 func wrapper(path string,methods handlers) func (w http.ResponseWriter,r *http.Request){
 	return func(w http.ResponseWriter,r *http.Request){
 		fmt.Printf("Request: %s , method: %s\n",path,r.Method)
@@ -31,7 +45,11 @@ func wrapper(path string,methods handlers) func (w http.ResponseWriter,r *http.R
 			http.ServeFile(w,r,"views\\404.html")
 			return
 		} 
-		if r.Method == "GET"{
+
+		if r.Method == http.MethodOptions {
+			methods.post(w,r)
+			return
+		}else if r.Method == "GET"{
 			if methods.get != nil{
 				methods.get(w,r)
 				return
@@ -47,9 +65,22 @@ func wrapper(path string,methods handlers) func (w http.ResponseWriter,r *http.R
 				fmt.Fprintf(w,"Invalid route")
 				w.WriteHeader(http.StatusInternalServerError)
 			}
-		}else if r.Method == http.MethodOptions {
-			methods.post(w,r)
-			return
+		}else if r.Method == "PUT"{
+			if methods.put != nil{
+				methods.post(w,r)
+				return
+			}else{
+				fmt.Fprintf(w,"Invalid route")
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}else if r.Method == "DELETE"{
+			if methods.delete != nil{
+				methods.post(w,r)
+				return
+			}else{
+				fmt.Fprintf(w,"Invalid route")
+				w.WriteHeader(http.StatusInternalServerError)
+			}
 		}else{
 			fmt.Println("In invalid route",r.Method)
 			fmt.Fprintf(w,"Invalid route")
