@@ -1,13 +1,10 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 )
 
 func PublicRouteMiddleware(next func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
-
-	fmt.Println("Cors tried...")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -19,7 +16,6 @@ func PublicRouteMiddleware(next func(w http.ResponseWriter, r *http.Request)) fu
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
-
 		next(w, r)
 	}
 }

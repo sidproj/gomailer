@@ -250,31 +250,29 @@
             return DOMPurify.sanitize(content, {
                 WHOLE_DOCUMENT: true,
                 FORCE_BODY: true,
-                ALLOWED_ATTR: ['style', 'class', 'type', 'href', 'rel'],
                 ALLOWED_TAGS: [
-                    'html', 'head', 'meta', 'title', 'body',
+                    'html', 'head', 'meta', 'title', 'body', 'style',
                     'div', 'p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                     'br', 'strong', 'em', 'a', 'img', 'link',
                     'table', 'caption', 'tr', 'th', 'tbody', 'td', 'figure'
                 ],
+                ALLOWED_ATTR: ['style', 'class', 'type', 'href', 'rel'],
+                SAFE_FOR_TEMPLATES: true,
+                RETURN_DOM: false,
+                SANITIZE_DOM: true
             });
         }
 
         function updatePreview() {
             const userInput = editor.getValue();
-
             resolvedTemplate = replaceTemplateVariable(userInput, 0)
-
             const sanitizedInput = sanitizeInput(resolvedTemplate)
-            // const sanitizedInput = resolvedTemplate;
-            console.log(sanitizedInput);
             previewPane.srcdoc = sanitizedInput
 
         }
 
         function getSanitizedInput() {
             const userInput = editor.getValue();
-            // return userInput
             return sanitizeInput(userInput)
         }
 
@@ -304,8 +302,6 @@
             formData.append('templateVariables', Object.keys(templateVariableMap) || null)
             formData.append('templateName', document.getElementById("templateName").value)
 
-            console.log(Object.keys(templateVariableMap));
-
             const urlString = window.location.search; // Gets the query string part of the URL
             const urlParams = new URLSearchParams(urlString);
 
@@ -322,7 +318,6 @@
             if (body.content) {
                 previewPane.srcdoc = body.content;
             }
-            console.log(body);
         }
 
     </script>

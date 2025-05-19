@@ -8,6 +8,7 @@ import (
 	"gomailer/utils"
 	"net/http"
 
+	"github.com/vanng822/go-premailer/premailer"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -36,9 +37,7 @@ func sendJsonError(w http.ResponseWriter,error string,description string) {
 }
 
 func validateMapKeys(keys []string,m2 map[string]string)bool{
-	fmt.Println(keys)
 	for _,k:= range keys{
-		fmt.Println(k,m2[k])
 		_,exists := m2[k]
 		if(!exists) {
 			return false
@@ -125,8 +124,24 @@ func SendEmailControllerPOST(w http.ResponseWriter, r *http.Request) {
 
 	replaceContent := utils.ReplaceTemplateVariables(template[0].TemplateContent,data.TemplateVariables)
 
+	p, err := premailer.NewPremailerFromString(replaceContent, &premailer.Options{
+		 RemoveClasses:     true,
+		CssToAttributes:   true,
+		KeepBangImportant: true,
+	})
+
+	if err != nil {
+		fmt.Printf("Error initializing premailer: %v", err)
+	}
+
+	// Transform HTML to email-safe HTML
+	emailHTML, err := p.Transform()
+	if err != nil {
+		fmt.Printf("Error transforming HTML: %v", err)
+	}
+
 	to := []string{"morisidhraj001@gmail.com"}
-	err = service.SendMail(auth, to, "tesing replacement", replaceContent,"sidharajdsa@gmail.com")
+	err = service.SendMail(auth, to, "tesing replacement", emailHTML,"sidharajdsa@gmail.com")
 	if err != nil {
 		errorMap := map[string]string{
 			"error":fmt.Sprintf("An error occured: %s",err.Error()),

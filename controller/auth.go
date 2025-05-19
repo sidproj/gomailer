@@ -65,7 +65,7 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 		return		
 	}
 
-	filter := bson.M{"email":lg.Email}
+	filter := bson.M{"email":strings.ToLower(lg.Email)}
 
 	users,err := userModel.Find(filter)
 
@@ -120,16 +120,11 @@ func RegisterControllerPOST(w http.ResponseWriter,r *http.Request){
 	sendRegisterError := sendError(w,register_html)
 	
 	if rg.LastName=="" || rg.FirstName=="" || rg.Email == "" || rg.Password == "" || rg.ConfirmPassword == ""{
+		fmt.Println(rg)
 		sendRegisterError("invalid request data")
+		return
 	}else if rg.Password != rg.ConfirmPassword {
 		sendRegisterError("password do not match")
-	}
-
-	
-	hashedPassword,err := utils.HashPassword(rg.Password)
-	
-	if err!= nil{
-		sendRegisterError(err.Error())	
 		return
 	}
 
@@ -140,8 +135,15 @@ func RegisterControllerPOST(w http.ResponseWriter,r *http.Request){
 		return	
 	}
 
+	hashedPassword,err := utils.HashPassword(rg.Password)
+	
+	if err!= nil{
+		sendRegisterError(err.Error())	
+		return
+	}
+
 	user := models.UserSchema{
-		FirstName: rg.FirstName,
+		FirstName: strings.ToLower(rg.FirstName),
 		LastName: rg.LastName,
 		Email: rg.Email,
 		Password: hashedPassword,
@@ -150,6 +152,7 @@ func RegisterControllerPOST(w http.ResponseWriter,r *http.Request){
 	if err:=userModel.Save(&user);err!=nil{
 		if(err.Error() == "E11000"){
 			sendRegisterError(fmt.Sprintf("Account already exists for email %s. Try different email!",user.Email))
+			return
 		}
 		sendRegisterError(err.Error())
 		return

@@ -62,15 +62,8 @@ func (collection *GenericCollectionModel[T])Save(model* T)error{
 
         // update id in struct
         if idField.CanSet() && result.InsertedID != nil{
-            fmt.Println("did set the id")
             idField.Set(reflect.ValueOf(result.InsertedID))
-        }else{
-            fmt.Println("did not set the id",idField.CanSet(),result.InsertedID != nil)
         }
-
-        // remove later
-        fmt.Printf("Inserted data in database for collection: %s with id: %v\n",collection.collectionName,result.InsertedID)
-
     }else{
         ctx, cancel := context.WithTimeout(context.Background(), 
                                     10 * time.Second)
@@ -87,8 +80,6 @@ func (collection *GenericCollectionModel[T])Save(model* T)error{
             return err
         }
 
-        // remove later
-        fmt.Printf("Updated data in database for collection: %s with id: %v\n",collection.collectionName,idField.Interface())
     }
     return nil
 }
@@ -134,8 +125,6 @@ func (collection *GenericCollectionModel[T])FindById(id string)(T,error){
     if err := collection.mongoCollection.FindOne(ctx,filter).Decode(&model); err != nil{
         return model,err
     }
-    
-    fmt.Println("Func data: ",model)
 
     return model,nil
 }

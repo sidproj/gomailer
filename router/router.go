@@ -28,63 +28,59 @@ func Post(path string,handler func(w http.ResponseWriter,r *http.Request)){
 
 func Put(path string,handler func(w http.ResponseWriter,r *http.Request)){
 	h:=routes[path]
-	h.post = handler
+	h.put = handler
 	routes[path] = h
 }
 
 func Delete(path string,handler func(w http.ResponseWriter, r *http.Request)){
 	h:=routes[path]
-	h.post = handler
+	h.delete = handler
 	routes[path] = h
 }
 
+// provides mapping for all the requests
 func wrapper(path string,methods handlers) func (w http.ResponseWriter,r *http.Request){
 	return func(w http.ResponseWriter,r *http.Request){
 		fmt.Printf("Request: %s , method: %s\n",path,r.Method)
 		if _,ok :=routes[r.URL.Path];!ok {
 			http.ServeFile(w,r,"views\\404.html")
 			return
-		} 
+		}
 
-		if r.Method == http.MethodOptions {
-			methods.post(w,r)
-			return
-		}else if r.Method == "GET"{
-			if methods.get != nil{
-				methods.get(w,r)
+		switch r.Method{
+			case http.MethodOptions:
+				requestedMethod := r.Header.Get("Access-Control-Request-Method")
+				fmt.Println("requested method for pre flight:",requestedMethod)
+				switch requestedMethod{
+					case http.MethodPost:methods.post(w,r)
+					case http.MethodPut:methods.put(w,r)
+					case http.MethodDelete:methods.delete(w,r)
+					case http.MethodGet:methods.get(w,r)
+				}
 				return
-			}else{
+			case http.MethodGet:
+				if methods.get != nil{
+					methods.get(w,r)
+					return
+				}
+			case http.MethodPost:
+				if methods.post != nil{
+					methods.post(w,r)
+					return
+				}
+			case http.MethodPut:
+				if methods.put != nil{
+					methods.put(w,r)
+					return
+				}
+			case http.MethodDelete:
+				if methods.delete != nil{
+					methods.delete(w,r)
+					return
+				}
+			default:
 				fmt.Fprintf(w,"Invalid route")
 				w.WriteHeader(http.StatusInternalServerError)
-			}
-		}else if r.Method == "POST"{
-			if methods.post != nil{
-				methods.post(w,r)
-				return
-			}else{
-				fmt.Fprintf(w,"Invalid route")
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-		}else if r.Method == "PUT"{
-			if methods.put != nil{
-				methods.post(w,r)
-				return
-			}else{
-				fmt.Fprintf(w,"Invalid route")
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-		}else if r.Method == "DELETE"{
-			if methods.delete != nil{
-				methods.post(w,r)
-				return
-			}else{
-				fmt.Fprintf(w,"Invalid route")
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-		}else{
-			fmt.Println("In invalid route",r.Method)
-			fmt.Fprintf(w,"Invalid route")
-			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
 }

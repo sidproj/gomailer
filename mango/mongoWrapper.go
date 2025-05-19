@@ -132,9 +132,6 @@ func (dbClient *MongoDbClient)Save(collection string,model interface{})error{
             idField.Set(reflect.ValueOf(result.InsertedID))
         }
 
-        // remove later
-        fmt.Printf("Inserted data in database for collection: %s with id: %v\n",collection,result.InsertedID)
-
     }else{
  
         ctx, cancel := context.WithTimeout(context.Background(), 
@@ -152,8 +149,6 @@ func (dbClient *MongoDbClient)Save(collection string,model interface{})error{
             return err
         }
 
-        // remove later
-        fmt.Printf("Updated data in database for collection: %s with id: %v\n",collection,idField.Interface())
     }
     return nil
 }
