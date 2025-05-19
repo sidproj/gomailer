@@ -16,7 +16,6 @@ func PublicRouteMiddleware(next func(w http.ResponseWriter, r *http.Request)) fu
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
-
 		next(w, r)
 	}
 }

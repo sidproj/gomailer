@@ -265,19 +265,14 @@
 
         function updatePreview() {
             const userInput = editor.getValue();
-
             resolvedTemplate = replaceTemplateVariable(userInput, 0)
-
             const sanitizedInput = sanitizeInput(resolvedTemplate)
-            // const sanitizedInput = resolvedTemplate;
-            console.log(sanitizedInput);
             previewPane.srcdoc = sanitizedInput
 
         }
 
         function getSanitizedInput() {
             const userInput = editor.getValue();
-            // return userInput
             return sanitizeInput(userInput)
         }
 
@@ -307,8 +302,6 @@
             formData.append('templateVariables', Object.keys(templateVariableMap) || null)
             formData.append('templateName', document.getElementById("templateName").value)
 
-            console.log(Object.keys(templateVariableMap));
-
             const urlString = window.location.search; // Gets the query string part of the URL
             const urlParams = new URLSearchParams(urlString);
 
@@ -325,7 +318,6 @@
             if (body.content) {
                 previewPane.srcdoc = body.content;
             }
-            console.log(body);
         }
 
     </script>
