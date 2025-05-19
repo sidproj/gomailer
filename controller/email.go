@@ -37,7 +37,6 @@ func sendJsonError(w http.ResponseWriter,error string,description string) {
 }
 
 func validateMapKeys(keys []string,m2 map[string]string)bool{
-	fmt.Println(keys)
 	for _,k:= range keys{
 		_,exists := m2[k]
 		if(!exists) {
