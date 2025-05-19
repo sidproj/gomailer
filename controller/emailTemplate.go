@@ -209,8 +209,6 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 
 	variables := strings.Split(r.FormValue("templateVariables"),",")
 
-	fmt.Println("variable:",variables)
-
 	for _,vars:=range variables{
 		if(len(vars)>0){
 			templateData.TemplateVariables = append(templateData.TemplateVariables, vars)
@@ -253,8 +251,6 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
-
-	fmt.Println("Updated the existing template successfully")
 
 	tempMap := make(map[string]interface{})
 

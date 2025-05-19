@@ -4,55 +4,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <!-- tailwind import -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- font import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Gomailer - register</title>
+
     <style>
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
+        .signup-animation:hover>input {
+            background-color: #000;
+            color: #fff;
+            /* top-[-5px] left-[5px] */
+            top: 0px;
+            left: 0px;
         }
 
-        .container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        form {
-            margin-top: -10rem;
-            display: flex;
-            flex-direction: column;
-            row-gap: 2rem;
-        }
-
-        .title {
-            align-self: center;
-            font-size: larger;
+        .signup-animation:hover>div {
+            background-color: #fff;
+            color: #000;
         }
     </style>
 </head>
 
-<body>
+<body class="w-full m-0 p-0 bg-[#0D58FF] text-white font-[Lexend] px-[10px] py-[10px] md:px-[50px] md:py-[20px]">
 
-    <div class="container">
-        <form method="post" action="/register">
-            <div class="title">Register</div>
-            <input type="text" name="FirstName" placeholder="First name" required />
-            <input type="text" name="LastName" placeholder="Last name" required />
-            <input type="email" name="Email" placeholder="Email" required />
-            <input type="password" name="Password" placeholder="Password" required />
-            <input type="password" name="Confirm Password" placeholder="Confirm Password" required />
-            {{ if .Error}}
-            <div>{{ .Error }}</div>
-            {{ end }}
-            <input type="submit" value="Register" />
-        </form>
+    <div class="w-full h-full flex flex-col gap-5 ">
+        <div class="font-[700] text-[40px]">gomailer.co</div>
+
+        <div class="w-full h-full flex flex-col md:flex-row items-center gap-[20px] md:gap-[70px]">
+            <div class="flex flex-col items-center w-[50%]">
+                <img src="/static/images/Register-Illustration.svg" class="w-[90%] md:w-[90%] h-auto" />
+            </div>
+            <div class="w-[100%] md:w-[42%] flex flex-col">
+                <form method="post" action="/register" class="w-full flex flex-col gap-[20px] md:gap-[25px]">
+                    <div class="flex flex-col">
+                        <div class="text-[30px] md:text-[50px] font-[600]">WELCOME</div>
+                        <div class="font-[400] text-[12px] md:text-[15px]">ENTER YOUR DETAILS BELOW TO START</div>
+                    </div>
+                    <div class="flex flex-col gap-[10px] md:gap-[25px]">
+                        <div class="flex flex-row gap-2 items-center">
+                            <div class="flex flex-col gap-[10px] md:gap-[18px] w-full">
+                                <label class="font-[400] text-[15px] md:text-[20px]" for="FirstName">FIRST NAME</label>
+                                <input type="text" name="FirstName"
+                                    class="bg-[#00000000] border-b-[1px] border-[#fff] w-full outline-none" required />
+                            </div>
+                            <div class="flex flex-col gap-[10px] md:gap-[18px] w-full">
+                                <label class="font-[400] text-[15px] md:text-[20px]" for="LastName">LAST NAME</label>
+                                <input type="text" name="LastName"
+                                    class="bg-[#00000000] border-b-[1px] border-[#fff] w-full outline-none" required />
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-[10px] md:gap-[18px] w-full">
+                            <label class="font-[400] text-[15px] md:text-[20px]" for="email">EMAIL</label>
+                            <input type="email" name="Email"
+                                class="bg-[#00000000] border-b-[1px] border-[#fff] w-full outline-none" required />
+                        </div>
+
+                        <div class="flex flex-col gap-[10px] md:gap-[18px] w-full">
+                            <label class="font-[400] text-[15px] md:text-[20px]" for="password">PASSWORD</label>
+                            <input type="password" name="Password"
+                                class="bg-[#00000000] border-b-[1px] border-[#fff] w-full  outline-none" required />
+                        </div>
+                        <div class="flex flex-col gap-[10px] md:gap-[18px] w-full">
+                            <label class="font-[400] text-[15px] md:text-[20px]" for="password">CONFIRM PASSWORD</label>
+                            <input type="password" name="Confirm Password"
+                                class="bg-[#00000000] border-b-[1px] border-[#fff] w-full  outline-none" required />
+                        </div>
+                    </div>
+                    {{ if .Error}}
+                    <div>{{ .Error }}</div>
+                    {{ end }}
+                    <div class="relative w-fit h-full flex flex-col self-center signup-animation mt-[8px]">
+                        <div
+                            class=" h-full bg-[#000]  w-fit py-[6px] md:py-[8px] px-[20px] md:px-[40px] text-[#fff] text-[18px] font-[300] duration-500">
+                            SIGN
+                            UP</div>
+                        <input type="submit" value="SIGN IN"
+                            class="top-[-5px] left-[5px] absolute border-[2px] border-[#000] text-[#000] text-[18px] font-[300] bg-[#fff] w-fit py-[6px] md:py-[8px] px-[20px] md:px-[40px] duration-500" />
+
+                    </div>
+                    <div class="w-fit self-center font-[400] text-[12px] md:text-[15px]">
+                        <a href="/login">ALREADY HAVE AN ACCOUNT?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
 </body>
 
 </html>
