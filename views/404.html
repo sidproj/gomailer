@@ -1,14 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="w-full h-full m-0 p-0">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+
+    <!-- tailwind import -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- font import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Gomailer - login</title>
+    <style>
+        .signup-animation:hover>input {
+            background-color: #000;
+            color: #fff;
+            /* top-[-5px] left-[5px] */
+            top: 0px;
+            left: 0px;
+        }
+
+        .signup-animation:hover>div {
+            background-color: #fff;
+            color: #000;
+        }
+    </style>
 </head>
 
-<body>
-    <h1>Page not found! <b>404</b></h1>
+<body class="w-full m-0 p-0 bg-[#0D58FF] text-white font-[Lexend] px-[10px] py-[10px] md:px-[50px] md:py-[20px]">
+
+    <div class="w-full h-full flex flex-col gap-5 ">
+        <div class="font-[700] text-[40px]">gomailer.co</div>
+
+        <div class="flex flex-col gap-[50px] md:items-center">
+            <div
+                class="flex flex-col md:items-center text-[45px] md:text-[90px] lg:text-[180px] font-[200] md:text-center leading-[1.3]">
+                <div>NOT FOUND</div>
+                <div class="font-[500] md:font-[200]">404</div>
+            </div>
+            <div class="flex flex-col md:items-center">
+                <div>OOPS! THE PAGE YOU'RE LOOKING FOR DOESN'T EXIST OR HAS BEEN MOVED.</div>
+                <div class="font-[700]">LET'S GET YOU BACK ON TRACK</div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

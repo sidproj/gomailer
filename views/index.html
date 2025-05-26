@@ -1,21 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="w-full h-full m-0 p-0">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go Web Server</title>
+
+    <!-- tailwind import -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- font import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Gomailer - login</title>
 </head>
 
-<body>
+<body class="flex flex-col w-full m-0 p-0 bg-[#FFFFFF] text-[#000000] font-[Lexend]">
+    <div class="w-full h-full flex flex-col gap-5 px-[10px] py-[10px] md:px-[50px] md:py-[20px]">
+        <div class="font-[700] text-[40px] flex flex-row items-center justify-between">
+            <div>gomailer.co</div>
+            <div class="flex flex-row gap-[60px] text-[15px] font-[400]">
+                <div class="text-[#0050FF]">HOME</div>
+                <div>YOUR TEMPLATES</div>
+                <div>ABOUT US</div>
+            </div>
+            <div class="flex flex-row gap-2">
+                <div class="text-[15px] font-[400]">SING UP</div>
+            </div>
+        </div>
 
-    <a href="/template">Go to template page</a>
+        <div class="flex flex-col gap-[50px] md:items-center">
+            <img class="self-start w-[750px] h-[540px] object-cover" src="/static/images/homepage-Illustration.svg"
+                alt="home page image" />
+            <div class="self-end text-right text-[90px] mt-[-10rem] font-[300]">
+                <div>INBOX, MEETS</div>
+                <div>PERSONALITY</div>
+            </div>
+        </div>
+    </div>
+    <div class="w-full h-full bg-[#0D58FF] px-[10px] py-[10px] md:p-[50px]">
+        <div class="flex flex-row w-full gap-2">
+            <div class="flex flex-col gap-[15px] w-full rounded-lg bg-[#fff] p-[20px] text-[30px] font-[600]">
+                <div class="flex flex-col">
+                    <div>BIRTHDAY</div>
+                    <div>TEMPLATE</div>
+                </div>
+                <div class="flex flex-col gap-[18px] text-[18px] font-[300]">
+                    <div>Subject Line: Happy Birthday</div>
 
-    <h1>{{.Title}}</h1>
-    {{ range .Loop}}
-    <div>{{ . }}</div>
-    {{ end }}
+                    <div>Dear [Customer Name],
+                        Has it been a year already? Wow, how time flies! We’re celebrating your special day with a 15%
+                        discount on your next
+                        purchase. Plus, you get free shipping on whatever you buy. How’s that for a special day? Click
+                        HERE to redeem!
+                    </div>
 
+                    <div>
+                        We hope your day is filled with joy, laughter, and lots of cake.
+                    </div>
+
+                    <div>
+                        Thank you for being a loyal customer. We appreciate your support and look forward to continuing
+                        to
+                        serve you.
+                    </div>
+
+                    <div>
+                        Warm regards,
+                        [Your Name]
+                    </div>
+                </div>
+            </div>
+            <div class="w-full rounded-lg bg-[#fff] p-[20px] text-[30px] font-[600]">
+                <div class="flex flex-col">
+                    <div>ANNIVERSARY</div>
+                    <div>TEMPLATE</div>
+                </div>
+                <div class="flex flex-col gap-[18px] text-[18px] font-[300]">
+                    <div>Subject: Happy Anniversary – Thank You for Being a Part of Our Journey
+                    </div>
+                    <div>
+                        Hi [Recipient's Name],
+                    </div>
+                    <div>
+                        Today marks a special milestone, and we couldn’t let it pass without celebrating you.
+                        Whether it’s been one year or many, your journey with us means the world. Thank you for your
+                        trust, loyalty, and
+                        continued support. We are truly grateful to have you as part of our story.
+                    </div>
+                    <div>
+                        Here’s to the memories we've created together — and to many more ahead!
+                        Happy Anniversary!
+                    </div>
+                    <div>
+                        With heartfelt appreciation,
+                        [Your Name]
+                    </div>
+                </div>
+            </div>
+            <div class="w-full rounded-lg bg-[#fff] p-[20px] text-[30px] font-[600]">
+                <div>BIRTHDAY</div>
+                <div>TEMPLATE</div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
