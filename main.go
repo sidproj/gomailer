@@ -29,6 +29,9 @@ func addingRoutes(){
 	// this endpoint will be available to other websites
 	router.Post("/sendmail",middleware.PublicRouteMiddleware(controller.SendEmailControllerPOST))
 	
+	// testing dynamic routes
+	router.Get("/template/:id",middleware.AuthMiddlewareUser(controller.DynamicControllerGET))
+	router.Get("/template/:id/test",middleware.AuthMiddlewareUser(controller.Dynamic1ControllerGET))
 }
 
 func loadModels(){
