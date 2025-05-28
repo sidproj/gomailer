@@ -3,15 +3,13 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"gomailer/router"
 	"net/http"
+
+	router "github.com/sidproj/grouter"
 )
 
 func DynamicControllerGET(w http.ResponseWriter, r *http.Request) {
 	params := router.GetPathParams(r)
-	id := params["id"]
-	fmt.Fprintf(w, "ID: %s", id)
-
 	json.NewEncoder(w).Encode(params)
 }
 
