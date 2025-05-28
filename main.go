@@ -6,9 +6,10 @@ import (
 	"gomailer/mango"
 	"gomailer/middleware"
 	"gomailer/models"
-	"gomailer/router"
 	"log"
 	"net/http"
+
+	router "github.com/sidproj/grouter"
 )
  
 func addingRoutes(){
