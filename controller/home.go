@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"html/template"
+	"gomailer/utils"
 	"net/http"
 )
 
@@ -15,6 +15,5 @@ type HomeData struct{
 func HomeController(w http.ResponseWriter, r *http.Request) {
 	loop := []string{"arceus","zekrom","mewtwo"}
 	p := HomeData{Title: "Pokemon",Loop: loop}
-	t,_ := template.ParseFiles("views\\index.html")
-	t.Execute(w,p)
+	utils.RenderTemplate(w,"views\\index.html",p)
 }

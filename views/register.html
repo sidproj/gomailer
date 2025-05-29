@@ -41,6 +41,7 @@
             </div>
             <div class="w-[100%] md:w-[42%] flex flex-col">
                 <form method="post" action="/register" class="w-full flex flex-col gap-[20px] md:gap-[25px]">
+                    <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
                     <div class="flex flex-col">
                         <div class="text-[30px] md:text-[50px] font-[600]">WELCOME</div>
                         <div class="font-[400] text-[12px] md:text-[15px]">ENTER YOUR DETAILS BELOW TO START</div>

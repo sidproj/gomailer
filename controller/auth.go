@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"gomailer/models"
 	"gomailer/utils"
-	"html/template"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
+const viewsDir = "views"
 
-const(
-	login_html = "views\\login.html"
-	register_html = "views\\register.html"
+var (
+	loginHTML    = filepath.Join(viewsDir, "login.html")
+	registerHTML = filepath.Join(viewsDir, "register.html")
 )
 
 type LoginData struct{
@@ -29,34 +30,57 @@ type RegisterData struct{
 	ConfirmPassword string
 }
 
-type ErrorData struct{
+type AuthTemplateData struct{
 	Error string
+	CsrfToken string
 }
 
 func sendError(w http.ResponseWriter,template_path string) func(error string) {
 
 	return func (error string){
 		fmt.Printf("Error: %s!\n",error)
-		e := ErrorData{Error:error}
-		t,_ := template.ParseFiles(template_path)
-		t.Execute(w,e)
+		e := AuthTemplateData{
+				Error:error,
+				CsrfToken:"",
+			}
+		token, err := utils.GenerateCSRFToken()
+		if(err!=nil){
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		utils.SetCSRFCookie(w, token)
+		utils.RenderTemplate(w,template_path,e)
 	}
 }
 
 func LoginControllerGET(w http.ResponseWriter, r *http.Request) {
-	e := ErrorData{Error:""}
-	t,_ := template.ParseFiles(login_html)
-	t.Execute(w,e)
+	token, err := utils.GenerateCSRFToken()
+	if(err!=nil){
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	utils.SetCSRFCookie(w, token)
+	
+	data := AuthTemplateData{
+			Error:"",
+			CsrfToken: token,
+		}
+	utils.RenderTemplate(w,loginHTML,data)
 }
 
 func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 	lg := LoginData{Email: r.FormValue("Email"),Password: r.FormValue("Password")}
 
-	sendLoginError := sendError(w,login_html)
+	sendLoginError := sendError(w,loginHTML)
 	if lg.Email == "" || lg.Password == ""{
 		sendLoginError("invalid request data")
 		return
 	}
+	if !utils.VerifyCSRFToken(r) {
+		sendLoginError("CSRF token mismatch")
+		return
+	}
+
 	userModel,err := models.GetUserModel()
 	
 	if err != nil{
@@ -104,9 +128,17 @@ func LoginControllerPOST(w http.ResponseWriter, r *http.Request){
 }
 
 func RegisterControllerGET(w http.ResponseWriter, r *http.Request){
-	e := ErrorData{Error:""}
-	t,_ := template.ParseFiles(register_html)
-	t.Execute(w,e)
+	token ,err := utils.GenerateCSRFToken()
+	if(err!=nil){
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	utils.SetCSRFCookie(w, token)
+	e := AuthTemplateData{
+			Error:"",
+			CsrfToken: token,
+		}
+	utils.RenderTemplate(w,registerHTML,e)
 }
 
 func RegisterControllerPOST(w http.ResponseWriter,r *http.Request){
@@ -117,14 +149,18 @@ func RegisterControllerPOST(w http.ResponseWriter,r *http.Request){
 		Password: r.FormValue("Password"),
 		ConfirmPassword: r.FormValue("Confirm Password")}
 
-	sendRegisterError := sendError(w,register_html)
+	sendRegisterError := sendError(w,registerHTML)
 	
 	if rg.LastName=="" || rg.FirstName=="" || rg.Email == "" || rg.Password == "" || rg.ConfirmPassword == ""{
 		fmt.Println(rg)
-		sendRegisterError("invalid request data")
+		sendRegisterError("Invalid request data")
 		return
 	}else if rg.Password != rg.ConfirmPassword {
-		sendRegisterError("password do not match")
+		sendRegisterError("Password do not match")
+		return
+	}
+	if !utils.VerifyCSRFToken(r) {
+		sendRegisterError("CSRF token mismatch")
 		return
 	}
 
@@ -150,7 +186,7 @@ func RegisterControllerPOST(w http.ResponseWriter,r *http.Request){
 	}
 
 	if err:=userModel.Save(&user);err!=nil{
-		if(err.Error() == "E11000"){
+		if(strings.Contains(err.Error(),"E11000")){
 			sendRegisterError(fmt.Sprintf("Account already exists for email %s. Try different email!",user.Email))
 			return
 		}
@@ -158,18 +194,5 @@ func RegisterControllerPOST(w http.ResponseWriter,r *http.Request){
 		return
 	}
 
-	cookie := http.Cookie{
-		Name:     "auth_jwt",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   0,
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(w,&cookie)
-
 	http.Redirect(w,r,"/login",http.StatusSeeOther)
-
 }

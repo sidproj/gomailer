@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gomailer/models"
-	"html/template"
+	"gomailer/utils"
 	"net/http"
 	"strings"
 
@@ -52,17 +52,13 @@ func TemplateControllerGET(w http.ResponseWriter,r * http.Request){
 			templateData["templateList"].([]interface{}),
 			newTemplate)
 	}
-	
-	t,_ := template.ParseFiles("views\\templates.html")
-	t.Execute(w,templateData)
-
+	utils.RenderTemplate(w,"views\\templates.html",templateData)
 }
 
 func CreateTemplateControllerGET(w http.ResponseWriter,r * http.Request){
 	templateData := map[string]interface{}{
 	}
-	t,_ := template.ParseFiles("views\\createTemplate.html")
-	t.Execute(w,templateData)
+	utils.RenderTemplate(w,"views\\createTemplate.html",templateData)
 }
 
 func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
@@ -150,6 +146,7 @@ func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
 
 	if(templateID == ""){
 		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		return
 	}
 
 	templateModel,err := models.GetTemplateModel()
@@ -189,8 +186,7 @@ func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
 		"templateName":data[0].Name,
 		"templateVariables":strings.Join(data[0].TemplateVariables,","),
 	}
-	t,_ := template.ParseFiles("views\\createTemplate.html")
-	t.Execute(w,templateData)
+	utils.RenderTemplate(w,"views\\createTemplate.html",templateData)
 }
 
 func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
@@ -199,6 +195,7 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 
 	if(templateID == ""){
 		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		return
 	}
 
 	templateData := TemplateData{
