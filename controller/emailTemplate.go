@@ -56,7 +56,16 @@ func TemplateControllerGET(w http.ResponseWriter,r * http.Request){
 }
 
 func CreateTemplateControllerGET(w http.ResponseWriter,r * http.Request){
+	// csrf token generation
+	token, err := utils.GenerateCSRFToken()
+	if(err!=nil){
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	utils.SetCSRFCookie(w, token)
+	
 	templateData := map[string]interface{}{
+		"CsrfToken": token,
 	}
 	utils.RenderTemplate(w,"views\\createTemplate.html",templateData)
 }
@@ -68,6 +77,23 @@ func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 		TemplateVariables: []string{},
 		TemplateName: strings.Trim(r.FormValue("templateName")," "),
 	}
+
+	// csrf token verification
+	if !utils.VerifyCSRFToken(r) {	
+		token, err := utils.GenerateCSRFToken()
+		if(err!=nil){
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		utils.SetCSRFCookie(w, token)
+		templateData := map[string]interface{}{
+			"CsrfToken": token,
+			"error":"CSRF token mismatch. Please reload the page",
+		}
+		json.NewEncoder(w).Encode(templateData)
+		return
+	}
+
 	
 	variables := strings.Split(r.FormValue("templateVariables"),",")
 
@@ -123,20 +149,21 @@ func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 	}
 
 	if err:=templateModel.Save(&template);err!=nil{
+		errMsg := err.Error()
+		if(err.Error() == "E11000"){
+			errMsg = "Template with the title already exists"
+		}
 		errorMap := map[string]string{
-			"error":"error while saving template",
-			"description":err.Error(),
+			"error":errMsg,
 		}
         fmt.Print(err.Error())
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
-	tempMap := make(map[string]interface{})
-
-	tempMap["content"] = template.TemplateContent
-	tempMap["variables"] = template.TemplateVariables
-
+	tempMap := map[string]string{
+		"message":"success",
+	}
     json.NewEncoder(w).Encode(tempMap)
 }
 
@@ -148,6 +175,14 @@ func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
 		http.Redirect(w,r,"/template",http.StatusSeeOther)
 		return
 	}
+
+	// csrf token generation
+	token, err := utils.GenerateCSRFToken()
+	if(err!=nil){
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	utils.SetCSRFCookie(w, token)
 
 	templateModel,err := models.GetTemplateModel()
 
@@ -185,6 +220,7 @@ func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
 		"templateContent":data[0].TemplateContent,
 		"templateName":data[0].Name,
 		"templateVariables":strings.Join(data[0].TemplateVariables,","),
+		"CsrfToken":token,
 	}
 	utils.RenderTemplate(w,"views\\createTemplate.html",templateData)
 }
@@ -195,6 +231,14 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 
 	if(templateID == ""){
 		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		return
+	}
+
+	if !utils.VerifyCSRFToken(r) {
+		errorMap := map[string]interface{}{
+			"error":"CSRF token mismatch. Please reload the page",
+		}
+		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 

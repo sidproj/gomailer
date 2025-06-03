@@ -90,6 +90,8 @@ github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:
 github.com/rogpeppe/go-internal v1.6.1/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
 github.com/sidproj/grouter v0.0.0-20250528181131-918d11be9760 h1:HLWNOSX5c/n2LsROCGKlyOwM+Mn5igPP4W0Fbmx984E=
 github.com/sidproj/grouter v0.0.0-20250528181131-918d11be9760/go.mod h1:Va1MsbZ6HuFhoRcEsAt6esmPF4YjjghD/YFzluRJ/ZM=
+github.com/sidproj/grouter v0.0.0-20250603192822-248dfe26ed07 h1:gLXLtl+rAiYlD5tDSNr15T7MISKygmbcBIZA8HiGfHg=
+github.com/sidproj/grouter v0.0.0-20250603192822-248dfe26ed07/go.mod h1:Va1MsbZ6HuFhoRcEsAt6esmPF4YjjghD/YFzluRJ/ZM=
 github.com/spf13/afero v1.11.0 h1:WJQKhtpdm3v2IzqG8VMqrr6Rf3UYpEF239Jy9wNepM8=
 github.com/spf13/afero v1.11.0/go.mod h1:GH9Y3pIexgf1MTIWtNGyogA5MwRIDXGUr+hbWNoBjkY=
 github.com/spf13/cast v1.7.0 h1:ntdiHjuueXFgm5nzDRdOS4yfT43P5Fnud6DH50rz/7w=
