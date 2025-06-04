@@ -39,14 +39,14 @@ func sendError(w http.ResponseWriter,template_path string) func(error string) {
 
 	return func (error string){
 		fmt.Printf("Error: %s!\n",error)
-		e := AuthTemplateData{
-				Error:error,
-				CsrfToken:"",
-			}
 		token, err := utils.GenerateCSRFToken()
 		if(err!=nil){
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
+		}
+		e := AuthTemplateData{
+			Error:error,
+			CsrfToken:token,
 		}
 		utils.SetCSRFCookie(w, token)
 		utils.RenderTemplate(w,template_path,e)

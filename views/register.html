@@ -12,6 +12,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
 
+    <!-- toast lib -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
     <title>Gomailer - register</title>
 
     <style>
@@ -97,5 +101,12 @@
         </div>
     </div>
 </body>
+<script>
+    const notyf = new Notyf();
+    if ("{{.Error}}") {
+        const newError = "{{.Error}}"
+        notyf.error(`Error: ${newError}`);
+    }
+</script>
 
 </html>
