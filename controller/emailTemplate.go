@@ -2,29 +2,45 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"gomailer/models"
 	"gomailer/utils"
+	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type TemplateData struct{
+var (
+	allTemplateView = filepath.Join("views","templates.html")
+	createTemplateView = filepath.Join("views","createTemplate.html")
+)
+
+type CreateTemplateRequest struct{
 	TemplateContent string
 	TemplateName string
 	TemplateVariables []string
 	ID string
 }
 
+type ErrorResponse struct {
+	Error       string `json:"error"`
+	Description string `json:"description,omitempty"`
+}
+
+func handleErrorRedirect(w http.ResponseWriter, r *http.Request, err error, path string) {
+	log.Println(err)
+	http.Redirect(w, r, path, http.StatusSeeOther)
+}
+
 func TemplateControllerGET(w http.ResponseWriter,r * http.Request){
 	templateModal,err := models.GetTemplateModel()
 	
 	if(err!=nil){
-		fmt.Println(err.Error())
-		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		handleErrorRedirect(w,r,err,"/template")
 		return
 	}
 
@@ -33,8 +49,7 @@ func TemplateControllerGET(w http.ResponseWriter,r * http.Request){
 	templates,err := templateModal.Find(filter)
 
 	if(err!=nil){
-		fmt.Println(err.Error())
-		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		handleErrorRedirect(w,r,err,"/template")
 		return
 	}
 
@@ -52,7 +67,7 @@ func TemplateControllerGET(w http.ResponseWriter,r * http.Request){
 			templateData["templateList"].([]interface{}),
 			newTemplate)
 	}
-	utils.RenderTemplate(w,"views\\templates.html",templateData)
+	utils.RenderTemplate(w,allTemplateView,templateData)
 }
 
 func CreateTemplateControllerGET(w http.ResponseWriter,r * http.Request){
@@ -67,16 +82,17 @@ func CreateTemplateControllerGET(w http.ResponseWriter,r * http.Request){
 	templateData := map[string]interface{}{
 		"CsrfToken": token,
 	}
-	utils.RenderTemplate(w,"views\\createTemplate.html",templateData)
+	utils.RenderTemplate(w,createTemplateView,templateData)
 }
 
 func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 
-	templateData := TemplateData{
-		TemplateContent: strings.Trim(r.FormValue("templateContent")," "),
+	templateData := CreateTemplateRequest{
+		TemplateContent: utils.TrimSpaces(r.FormValue("templateContent")),
 		TemplateVariables: []string{},
-		TemplateName: strings.Trim(r.FormValue("templateName")," "),
+		TemplateName: utils.TrimSpaces(r.FormValue("templateName")),
 	}
+	w.Header().Set("Content-Type", "application/json")
 
 	// csrf token verification
 	if !utils.VerifyCSRFToken(r) {	
@@ -90,6 +106,7 @@ func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 			"CsrfToken": token,
 			"error":"CSRF token mismatch. Please reload the page",
 		}
+		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(templateData)
 		return
 	}
@@ -102,9 +119,6 @@ func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 			templateData.TemplateVariables = append(templateData.TemplateVariables,vars)
 		}
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
 
 	userID,err := primitive.ObjectIDFromHex(r.Header.Get("user_id"))
 
@@ -132,7 +146,7 @@ func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 	template := models.TemplateSchema{
 		UserID : userID,
 		Name: templateData.TemplateName,
-		TemplateContent: strings.Trim(templateData.TemplateContent," "),
+		TemplateContent: utils.TrimSpaces(templateData.TemplateContent),
 		TemplateVariables: templateData.TemplateVariables,
 	}
 
@@ -143,24 +157,25 @@ func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 			"error":"error while saving template",
 			"description":err.Error(),
 		}
-        fmt.Print(err.Error())
+        log.Println(err.Error())
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
 	if err:=templateModel.Save(&template);err!=nil{
 		errMsg := err.Error()
-		if(err.Error() == "E11000"){
+		if mongo.IsDuplicateKeyError(err){
 			errMsg = "Template with the title already exists"
 		}
 		errorMap := map[string]string{
 			"error":errMsg,
 		}
-        fmt.Print(err.Error())
+        log.Println(err.Error())
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	tempMap := map[string]string{
 		"message":"success",
 	}
@@ -187,22 +202,19 @@ func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
 	templateModel,err := models.GetTemplateModel()
 
 	if(err!=nil){
-		fmt.Println(err.Error())
-		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		handleErrorRedirect(w,r,err,"/template")
 		return
 	}
 
 	user_id,err := primitive.ObjectIDFromHex(r.Header.Get("user_id"))
 	if (err != nil){
-		fmt.Println(err.Error())
-		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		handleErrorRedirect(w,r,err,"/template")
 		return
 	}
 
 	template_id,err := primitive.ObjectIDFromHex(templateID)
 	if (err != nil){
-		fmt.Println(err.Error())
-		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		handleErrorRedirect(w,r,err,"/template")
 		return
 	}
 
@@ -211,8 +223,7 @@ func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
 	data,err := templateModel.Find(filter)
 
 	if(err!=nil){
-		fmt.Println(err.Error())
-		http.Redirect(w,r,"/template",http.StatusSeeOther)
+		handleErrorRedirect(w,r,err,"/template")
 		return
 	}
 
@@ -222,7 +233,7 @@ func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
 		"templateVariables":strings.Join(data[0].TemplateVariables,","),
 		"CsrfToken":token,
 	}
-	utils.RenderTemplate(w,"views\\createTemplate.html",templateData)
+	utils.RenderTemplate(w,createTemplateView,templateData)
 }
 
 func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
@@ -233,18 +244,19 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 		http.Redirect(w,r,"/template",http.StatusSeeOther)
 		return
 	}
-
+	w.Header().Set("Content-Type", "application/json")
 	if !utils.VerifyCSRFToken(r) {
 		errorMap := map[string]interface{}{
 			"error":"CSRF token mismatch. Please reload the page",
 		}
+		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
-	templateData := TemplateData{
-		TemplateContent: strings.Trim(r.FormValue("templateContent")," "),
-		TemplateName: strings.Trim(r.FormValue("templateName")," "),
+	templateData := CreateTemplateRequest{
+		TemplateContent: utils.TrimSpaces(r.FormValue("templateContent")),
+		TemplateName: utils.TrimSpaces(r.FormValue("templateName")),
 		TemplateVariables: []string{},
 	}
 
@@ -274,7 +286,7 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 			"error":"error while finding template",
 			"description":err.Error(),
 		}
-        fmt.Print(err.Error())
+        log.Println(err.Error())
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
@@ -288,7 +300,7 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 			"error":"error while updating template",
 			"description":err.Error(),
 		}
-        fmt.Print(err.Error())
+        log.Println(err.Error())
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}

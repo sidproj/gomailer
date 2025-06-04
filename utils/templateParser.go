@@ -27,3 +27,7 @@ func RenderTemplate(w http.ResponseWriter, path string, data any) {
 		fmt.Println("Template execution error:", err)
 	}
 }
+
+func TrimSpaces(s string) string {
+    return strings.TrimSpace(s)
+}
