@@ -17,9 +17,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/css/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/htmlmixed/htmlmixed.min.js"></script>
 
-    <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet"> -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.22/dist/full.min.css" rel="stylesheet" type="text/css" /> -->
+    <!-- toast lib -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 
 
     <style>
@@ -62,7 +63,8 @@
 
     <div class="hidden w-full h-full bg-[#00000053] absolute top-0 left-0 z-10 flex-col items-center justify-center"
         id="popupOverlay">
-        <div class="flex flex-col items-center justify-center p-[1rem] bg-[#fff] reounded w-fit gap-2">
+        <input type="hidden" id="csrf_token" name="csrf_token" value="{{.CsrfToken}}">
+        <div class="flex flex-col items-center justify-center p-[1rem] bg-[#fff] rounded w-fit gap-2">
             <div class="flex flex-row justify-between w-full">
                 <div>Add template variable</div>
                 <div class="cursor-pointer p-2 bg-[grey] rounded text-[white]" onclick="handlePopUpdisplay(false)">close
@@ -84,7 +86,6 @@
                 onclick="addVariable()">Add
             </button>
         </div>
-    </div>
     </div>
 
     <div class="flex flex-col p-[1rem] w-full h-full gap-[1rem]">
@@ -147,6 +148,8 @@
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <script>
+
+        const notyf = new Notyf();
 
         let editor = null
         const templateVariableMap = {}
@@ -298,9 +301,21 @@
 
         async function handleTemplateSubmit() {
             let formData = new FormData();
-            formData.append('templateContent', getSanitizedInput());
+            const templateName = document.getElementById("templateName").value
+            const templateSanitized = getSanitizedInput();
+            if (!templateName) {
+                notyf.error(`Please enter template name!`);
+                return;
+            }
+            if (!templateSanitized) {
+                notyf.error(`Please enter template data!`);
+                return;
+            }
+
+            formData.append('templateContent', templateSanitized);
             formData.append('templateVariables', Object.keys(templateVariableMap) || null)
-            formData.append('templateName', document.getElementById("templateName").value)
+            formData.append('templateName', templateName)
+            formData.append("csrf_token", document.getElementById("csrf_token").value);
 
             const urlString = window.location.search; // Gets the query string part of the URL
             const urlParams = new URLSearchParams(urlString);
@@ -315,8 +330,20 @@
                     method: "post"
                 });
             const body = await response.json();
-            if (body.content) {
-                previewPane.srcdoc = body.content;
+
+            if (!template_id) {
+                if (body.message === "success") {
+                    window.location.href = body.redirect
+                    return;
+                } else {
+                    notyf.error(`Error: ${body.error}.`);
+                }
+            } else {
+                if (body.content) {
+                    notyf.success('Updated the template!');
+                } else {
+                    notyf.error(`Error:${body.error}`);
+                }
             }
         }
 
