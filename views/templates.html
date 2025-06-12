@@ -4,9 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet"> -->
+
+    <!-- tailwind import -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.22/dist/full.min.css" rel="stylesheet" type="text/css" /> -->
+
+    <!-- font import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
 
     <style>
         html {
@@ -41,14 +46,103 @@
     </style>
 </head>
 
-<body class="flex flex-col w-full gap-2 p-4">
-    {{ if .templateList }}
-    {{range $template := .templateList }}
-    <a href="/template/edit?template_id={{$template.id}}">
-        <div class="bg-[#555] p-2 w-fit text-white">{{$template.name}}</div>
-    </a>
-    {{end}}
-    {{ end }}
+<body class="w-full gap-2 p-4 font-[Lexend] bg-[#0D58FF] text-white px-[10px] py-[10px] md:px-[50px] md:py-[20px]">
+    <div class="w-full h-full flex flex-col gap-5">
+        <div class="font-[700] text-[40px]">gomailer.co</div>
+        <div class="text-[80px] font-light uppercase self-end w-fit">templates</div>
+
+        {{ if .templateListJSON }}
+        <div class="flex flex-col gap-4 w-full" id="templateContainer"></div>
+        {{ end }}
+
+        <!-- footer -->
+        <div class="flex flex-row justify-between w-full">
+            <!-- section -->
+            <div class="flex flex-col gap-[45px] text-[#fff]">
+                <div class="text-[30px] font-[500]">Legal</div>
+                <div class="flex flex-col text-[25px] font-[300] ">
+                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Privacy Policy</div>
+                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Cancellation Policy</div>
+                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Terms & Condition</div>
+                </div>
+            </div>
+
+            <!-- section -->
+            <div class="flex flex-col gap-[45px] text-[#fff]">
+                <div class="text-[30px] font-[500]">Social</div>
+                <div class="flex flex-col text-[25px] font-[300] ">
+                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Email</div>
+                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Linked In</div>
+                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Github</div>
+                </div>
+            </div>
+
+            <!-- section -->
+            <div class="flex flex-col gap-[45px] text-[#fff] w-[40%]">
+                <div class="text-[30px] font-[500]">Subscribe to our newsletter!</div>
+                <div class="flex flex-col text-[25px] font-[300]">
+                    <div>Subscribe to our newsletter for the latest email design tips, new templates, and exclusive
+                        offers — straight to your
+                        inbox
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-row justify-between w-full px-[80px] text-[18px] font-[300]">
+            <div class="">© 2025, Gomailer All rights reserved</div>
+            <div class="flex flex-col gap-2">
+                <div>Product of Sidproj</div>
+                <div class="flex flex-row gap-1">
+                    <div>Designed by</div>
+                    <img class="w-[20px] h-[20px]" src="/static//images/voybyct.svg">
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
+
+<script>
+
+    window.onload = () => {
+        if ("{{.templateListJSON}}") {
+            const strJson = "{{.templateListJSON}}";
+            const templateListData = JSON.parse(strJson);
+            templateListData.forEach((template) => {
+
+                // template name div
+                const templateName = document.createElement("div");
+                templateName.classList = "uppercase text-[40px] font-[600] text-black";
+                templateName.innerText = template.name;
+
+                const templateContent = document.createElement("iframe");
+                templateContent.style.width = '100%';
+                templateContent.style.height = '300px';
+                templateContent.style.border = "1px solid black"
+                templateContent.style.borderRadius = "5px";
+                templateContent.style.overflow = 'hidden';
+                templateContent.style.backgroundColor = "#fff";
+                templateContent.setAttribute('scrolling', 'no');
+
+                templateContent.onload = function () {
+                    templateContent.contentDocument.open();
+                    templateContent.contentDocument.write(template.content);
+                    templateContent.contentDocument.close();
+                };
+
+                const redirectBtn = document.createElement("a");
+                redirectBtn.className = "text-black"
+                redirectBtn.setAttribute("href", `/template/edit?template_id=${template.id}`)
+                redirectBtn.innerText = "EDIT";
+
+                const newDiv = document.createElement("div");
+                newDiv.className = "flex flex-col p-4 gap-4 bg-white rounded-xl";
+                newDiv.appendChild(templateName);
+                newDiv.appendChild(templateContent);
+                newDiv.appendChild(redirectBtn);
+                document.getElementById("templateContainer").appendChild(newDiv);
+            })
+        }
+    }
+</script>
 
 </html>
