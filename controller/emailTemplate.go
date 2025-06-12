@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"gomailer/models"
 	"gomailer/utils"
+	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -53,19 +54,24 @@ func TemplateControllerGET(w http.ResponseWriter,r * http.Request){
 		return
 	}
 
-	templateData := map[string]interface{}{
-		"templateList":[]interface{}{},
-	}
-
+	templateList := []map[string]interface{}{}
+	
 	for _,val := range templates{
-		newTemplate := map[string]interface{}{
+		templateList = append(templateList,map[string]interface{}{
 			"id":val.ID.Hex(),
 			"name":val.Name,
-		}
+			"content":val.TemplateContent,
+		})	
+	}
 
-		templateData["templateList"] = append(
-			templateData["templateList"].([]interface{}),
-			newTemplate)
+	jsonBytes, err := json.Marshal(templateList)
+	if err != nil {
+		http.Error(w, "Failed to serialize templates", http.StatusInternalServerError)
+		return
+	}
+
+	templateData := map[string]interface{}{
+		"templateListJSON": template.JS(jsonBytes),
 	}
 	utils.RenderTemplate(w,allTemplateView,templateData)
 }
