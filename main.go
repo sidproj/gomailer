@@ -6,6 +6,7 @@ import (
 	"gomailer/mango"
 	"gomailer/middleware"
 	"gomailer/models"
+	"gomailer/utils"
 	"log"
 	"net/http"
 
@@ -45,7 +46,7 @@ func main(){
 	addingRoutes()
 	router.LoadRoutes()
 
-	mangoClient := mango.MongoConnect("mongodb://localhost:27017/","gomailer")
+	mangoClient := mango.MongoConnect(utils.GetEnvVariable("MONGODB_ATLAS_URI"),"gomailer")
 	defer mangoClient.CloseConn()
 
 	// load models
