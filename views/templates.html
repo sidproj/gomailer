@@ -1,148 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- tailwind import -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- font import -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
 
     <style>
-        html {
-            font-family: Arial, sans-serif;
-            margin: 0px;
-            padding: 0px;
-            scroll-behavior: smooth;
-            width: 100%;
-        }
+      html {
+        font-family: Arial, sans-serif;
+        margin: 0px;
+        padding: 0px;
+        scroll-behavior: smooth;
+        width: 100%;
+      }
 
-        /* width */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
+      /* width */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
 
-        /* Track */
-        ::-webkit-scrollbar-track {
-            background: #f1f1f100;
-        }
+      /* Track */
+      ::-webkit-scrollbar-track {
+        background: #f1f1f100;
+      }
 
-        /* Handle */
-        ::-webkit-scrollbar-thumb {
-            background: #88888889;
-            border-radius: 1rem;
-        }
+      /* Handle */
+      ::-webkit-scrollbar-thumb {
+        background: #88888889;
+        border-radius: 1rem;
+      }
 
-        /* Handle on hover */
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
+      /* Handle on hover */
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      .signup-animation:hover > #front {
+        background-color: #000;
+        color: #fff;
+        /* top-[-5px] left-[5px] */
+        top: 0px;
+        left: 0px;
+      }
+
+      .signup-animation:hover > #back {
+        background-color: #fff;
+        color: #000;
+      }
     </style>
-    </style>
-</head>
+  </head>
 
-<body class="w-full gap-2 p-4 font-[Lexend] bg-[#0D58FF] text-white px-[10px] py-[10px] md:px-[50px] md:py-[20px]">
+  <body
+    class="w-full gap-2 p-4 font-[Lexend] bg-[#0D58FF] text-white px-[10px] py-[10px] md:px-[50px] md:py-[20px]"
+  >
     <div class="w-full h-full flex flex-col gap-5">
-        <div class="font-[700] text-[40px]">gomailer.co</div>
-        <div class="text-[80px] font-light uppercase self-end w-fit">templates</div>
+      <div class="font-[700] text-[40px]">gomailer.co</div>
+      <div class="text-[80px] font-light uppercase self-end w-fit">
+        templates
+      </div>
 
-        {{ if .templateListJSON }}
-        <div class="flex flex-col gap-4 w-full" id="templateContainer"></div>
-        {{ end }}
-
-        <!-- footer -->
-        <div class="flex flex-row justify-between w-full">
-            <!-- section -->
-            <div class="flex flex-col gap-[45px] text-[#fff]">
-                <div class="text-[30px] font-[500]">Legal</div>
-                <div class="flex flex-col text-[25px] font-[300] ">
-                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Privacy Policy</div>
-                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Cancellation Policy</div>
-                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Terms & Condition</div>
-                </div>
-            </div>
-
-            <!-- section -->
-            <div class="flex flex-col gap-[45px] text-[#fff]">
-                <div class="text-[30px] font-[500]">Social</div>
-                <div class="flex flex-col text-[25px] font-[300] ">
-                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Email</div>
-                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Linked In</div>
-                    <div class="hover:scale-[1.05] duration-500 cursor-pointer">Github</div>
-                </div>
-            </div>
-
-            <!-- section -->
-            <div class="flex flex-col gap-[45px] text-[#fff] w-[40%]">
-                <div class="text-[30px] font-[500]">Subscribe to our newsletter!</div>
-                <div class="flex flex-col text-[25px] font-[300]">
-                    <div>Subscribe to our newsletter for the latest email design tips, new templates, and exclusive
-                        offers — straight to your
-                        inbox
-                    </div>
-                </div>
-            </div>
+      <a
+        href="/template/create"
+        class="relative w-fit h-full flex flex-col signup-animation cursor-pointer"
+      >
+        <div
+          id="back"
+          class="uppercase w-fit h-full bg-[#000] text-[#fff] text-[18px] font-[300] duration-500 p-1"
+        >
+          create new
         </div>
-        <div class="flex flex-row justify-between w-full px-[80px] text-[18px] font-[300]">
-            <div class="">© 2025, Gomailer All rights reserved</div>
-            <div class="flex flex-col gap-2">
-                <div>Product of Sidproj</div>
-                <div class="flex flex-row gap-1">
-                    <div>Designed by</div>
-                    <img class="w-[20px] h-[20px]" src="/static//images/voybyct.svg">
-                </div>
-            </div>
+        <div
+          id="front"
+          class="absolute whitespace-nowrap uppercase w-fit top-[-5px] bg-[#fff] text-[#000] text-[18px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1"
+        >
+          create new
         </div>
+      </a>
+
+      {{ if .templateListJSON }}
+      <div class="flex flex-col gap-4 w-full" id="templateContainer"></div>
+      {{ end }}
+
+      <!-- footer -->
+      <div class="flex flex-row justify-between w-full">
+        <!-- section -->
+        <div class="flex flex-col gap-[45px] text-[#fff]">
+          <div class="text-[30px] font-[500]">Legal</div>
+          <div class="flex flex-col text-[25px] font-[300]">
+            <div class="hover:scale-[1.05] duration-500 cursor-pointer">
+              Privacy Policy
+            </div>
+            <div class="hover:scale-[1.05] duration-500 cursor-pointer">
+              Cancellation Policy
+            </div>
+            <div class="hover:scale-[1.05] duration-500 cursor-pointer">
+              Terms & Condition
+            </div>
+          </div>
+        </div>
+
+        <!-- section -->
+        <div class="flex flex-col gap-[45px] text-[#fff]">
+          <div class="text-[30px] font-[500]">Social</div>
+          <div class="flex flex-col text-[25px] font-[300]">
+            <div class="hover:scale-[1.05] duration-500 cursor-pointer">
+              Email
+            </div>
+            <div class="hover:scale-[1.05] duration-500 cursor-pointer">
+              Linked In
+            </div>
+            <div class="hover:scale-[1.05] duration-500 cursor-pointer">
+              Github
+            </div>
+          </div>
+        </div>
+
+        <!-- section -->
+        <div class="flex flex-col gap-[45px] text-[#fff] w-[40%]">
+          <div class="text-[30px] font-[500]">Subscribe to our newsletter!</div>
+          <div class="flex flex-col text-[25px] font-[300]">
+            <div>
+              Subscribe to our newsletter for the latest email design tips, new
+              templates, and exclusive offers — straight to your inbox
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="flex flex-row justify-between w-full px-[80px] text-[18px] font-[300]"
+      >
+        <div class="">© 2025, Gomailer All rights reserved</div>
+        <div class="flex flex-col gap-2">
+          <div>Product of Sidproj</div>
+          <div class="flex flex-row gap-1 items-center">
+            <div>Designed by</div>
+            <img class="w-[20px] h-[20px]" src="/static//images/voybyct.svg" />
+          </div>
+        </div>
+      </div>
     </div>
-</body>
+  </body>
 
-<script>
-
+  <script>
     window.onload = () => {
-        if ("{{.templateListJSON}}") {
-            const strJson = "{{.templateListJSON}}";
-            const templateListData = JSON.parse(strJson);
-            templateListData.forEach((template) => {
+      if ("{{.templateListJSON}}") {
+        const strJson = "{{.templateListJSON}}";
+        const templateListData = JSON.parse(strJson);
+        templateListData.forEach((template) => {
+          // template name div
+          const templateName = document.createElement("div");
+          templateName.classList =
+            "uppercase text-[40px] font-[600] text-black";
+          templateName.innerText = template.name;
 
-                // template name div
-                const templateName = document.createElement("div");
-                templateName.classList = "uppercase text-[40px] font-[600] text-black";
-                templateName.innerText = template.name;
+          const templateContent = document.createElement("iframe");
+          templateContent.style.width = "100%";
+          templateContent.style.height = "300px";
+          templateContent.style.border = "1px solid black";
+          templateContent.style.borderRadius = "5px";
+          templateContent.style.overflow = "hidden";
+          templateContent.style.backgroundColor = "#fff";
+          templateContent.setAttribute("scrolling", "no");
 
-                const templateContent = document.createElement("iframe");
-                templateContent.style.width = '100%';
-                templateContent.style.height = '300px';
-                templateContent.style.border = "1px solid black"
-                templateContent.style.borderRadius = "5px";
-                templateContent.style.overflow = 'hidden';
-                templateContent.style.backgroundColor = "#fff";
-                templateContent.setAttribute('scrolling', 'no');
+          templateContent.onload = function () {
+            templateContent.contentDocument.open();
+            templateContent.contentDocument.write(template.content);
+            templateContent.contentDocument.close();
+          };
 
-                templateContent.onload = function () {
-                    templateContent.contentDocument.open();
-                    templateContent.contentDocument.write(template.content);
-                    templateContent.contentDocument.close();
-                };
+          const redirectBtn = document.createElement("a");
+          redirectBtn.className = "text-black";
+          redirectBtn.setAttribute(
+            "href",
+            `/template/edit?template_id=${template.id}`
+          );
+          redirectBtn.innerText = "EDIT";
 
-                const redirectBtn = document.createElement("a");
-                redirectBtn.className = "text-black"
-                redirectBtn.setAttribute("href", `/template/edit?template_id=${template.id}`)
-                redirectBtn.innerText = "EDIT";
+          const link = document.createElement("a");
+          link.href = `/template/edit?template_id=${template.id}`;
+          link.className =
+            "relative w-fit h-full flex flex-col signup-animation cursor-pointer";
 
-                const newDiv = document.createElement("div");
-                newDiv.className = "flex flex-col p-4 gap-4 bg-white rounded-xl";
-                newDiv.appendChild(templateName);
-                newDiv.appendChild(templateContent);
-                newDiv.appendChild(redirectBtn);
-                document.getElementById("templateContainer").appendChild(newDiv);
-            })
-        }
-    }
-</script>
+          // Create BACK div
+          const back = document.createElement("div");
+          back.id = "back";
+          back.className =
+            "uppercase w-fit h-full bg-[#000] text-[#fff] text-[18px] font-[300] duration-500 p-1";
+          back.textContent = "edit";
 
+          // Create FRONT div
+          const front = document.createElement("div");
+          front.id = "front";
+          front.className =
+            "absolute whitespace-nowrap uppercase w-fit top-[-5px] bg-[#fff] text-[#000] text-[18px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1";
+          front.textContent = "edit";
+
+          // Append children
+          link.appendChild(back);
+          link.appendChild(front);
+
+          const newDiv = document.createElement("div");
+          newDiv.className = "flex flex-col p-4 gap-4 bg-white rounded-xl";
+          newDiv.appendChild(templateName);
+          newDiv.appendChild(templateContent);
+          newDiv.appendChild(link);
+          document.getElementById("templateContainer").appendChild(newDiv);
+        });
+      }
+    };
+  </script>
 </html>
