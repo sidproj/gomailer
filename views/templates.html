@@ -92,7 +92,7 @@
       {{ end }}
 
       <!-- footer -->
-      <div class="flex flex-row justify-between w-full">
+      <div class="flex flex-row justify-between w-full mt-[100px] gap-2 flex-wrap">
         <!-- section -->
         <div class="flex flex-col gap-[45px] text-[#fff]">
           <div class="text-[30px] font-[500]">Legal</div>
@@ -165,9 +165,7 @@
 
           const templateContent = document.createElement("iframe");
           templateContent.style.width = "100%";
-          templateContent.style.height = "300px";
-          templateContent.style.border = "1px solid black";
-          templateContent.style.borderRadius = "5px";
+          templateContent.style.height = "500px";
           templateContent.style.overflow = "hidden";
           templateContent.style.backgroundColor = "#fff";
           templateContent.setAttribute("scrolling", "no");
@@ -189,13 +187,13 @@
           const link = document.createElement("a");
           link.href = `/template/edit?template_id=${template.id}`;
           link.className =
-            "relative w-fit h-full flex flex-col signup-animation cursor-pointer";
+            "relative w-fit h-fit flex flex-col signup-animation cursor-pointer";
 
           // Create BACK div
           const back = document.createElement("div");
           back.id = "back";
           back.className =
-            "uppercase w-fit h-full bg-[#000] text-[#fff] text-[18px] font-[300] duration-500 p-1";
+            "uppercase w-fit h-fit bg-[#000] text-[#fff] text-[18px] font-[300] duration-500 p-1";
           back.textContent = "edit";
 
           // Create FRONT div

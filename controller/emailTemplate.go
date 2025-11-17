@@ -184,6 +184,7 @@ func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 	w.WriteHeader(http.StatusCreated)
 	tempMap := map[string]string{
 		"message":"success",
+		"redirect":"/template/edit?template_id="+template.ID.Hex(),
 	}
     json.NewEncoder(w).Encode(tempMap)
 }
