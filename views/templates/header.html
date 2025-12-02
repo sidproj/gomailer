@@ -1,0 +1,86 @@
+<!-- footer -->
+{{define "header"}}
+
+<!DOCTYPE html>
+<html lang="en" class="w-full h-full m-0 p-0">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- tailwind import -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- font import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+
+
+    <!-- code mirror design/UI import -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/theme/dracula.min.css">
+
+    <!-- code mirror library import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/mode/htmlmixed/htmlmixed.min.js"></script>
+
+    <!-- toast lib -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
+
+    <title>{{.Title}}</title>
+    <style>
+        a {
+            all: unset;
+            cursor: pointer;
+        }
+
+        .signup-animation:hover>#front {
+            background-color: #000;
+            color: #fff;
+            /* top-[-5px] left-[5px] */
+            top: 0px;
+            left: 0px;
+        }
+
+        .signup-animation:hover>#back {
+            background-color: #fff;
+            color: #000;
+        }
+
+        .bounce-img {
+            animation-name: bounce-img;
+            animation-duration: 3s;
+            animation-iteration-count: infinite;
+            animation-timing-function: ease-in-out;
+        }
+
+        body{
+            font-family: "Lexend";
+        }
+
+        @keyframes bounce-img {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="{{if .isWhite}}bg-white text-black{{else}}bg-[#0d58ff] text-white{{end}} flex flex-col">
+<div class="{{if .isWhite}}bg-white text-black{{else}}bg-[#0d58ff] text-white{{end}} p-[20px]">
+    <div class="font-[700] text-[40px]">gomailer.co</div>
+</div>
+{{end}}

@@ -12,41 +12,44 @@ import (
 
 	router "github.com/sidproj/grouter"
 )
- 
-func addingRoutes(){
-	router.Get("/",controller.HomeController)
-	router.Get("/login",controller.LoginControllerGET)
-	router.Post("/login",controller.LoginControllerPOST)
 
-	router.Get("/register",controller.RegisterControllerGET)
-	router.Post("/register",controller.RegisterControllerPOST)
+func addingRoutes() {
+	router.Get("/", controller.HomeController)
+	router.Get("/login", controller.LoginControllerGET)
+	router.Post("/login", controller.LoginControllerPOST)
+
+	router.Get("/register", controller.RegisterControllerGET)
+	router.Post("/register", controller.RegisterControllerPOST)
 
 	// template testing
-	router.Get("/template",middleware.AuthMiddlewareUser(controller.TemplateControllerGET))
-	router.Get("/template/create",middleware.AuthMiddlewareUser(controller.CreateTemplateControllerGET))
-	router.Post("/template/create",middleware.AuthMiddlewareUser(controller.CreateTemplateControllerPOST))
-	router.Get("/template/edit",middleware.AuthMiddlewareUser(controller.EditTemplateControllerGET))
-	router.Post("/template/edit",middleware.AuthMiddlewareUser(controller.EditTemplateControllerPOST))
+	router.Get("/template", middleware.AuthMiddlewareUser(controller.TemplateControllerGET))
+	router.Get("/template/create", middleware.AuthMiddlewareUser(controller.CreateTemplateControllerGET))
+	router.Post("/template/create", middleware.AuthMiddlewareUser(controller.CreateTemplateControllerPOST))
+	router.Get("/template/edit", middleware.AuthMiddlewareUser(controller.EditTemplateControllerGET))
+	router.Post("/template/edit", middleware.AuthMiddlewareUser(controller.EditTemplateControllerPOST))
+
+	// about
+	router.Get("/about", controller.AboutController)
 
 	// this endpoint will be available to other websites
-	router.Post("/sendmail",middleware.PublicRouteMiddleware(controller.SendEmailControllerPOST))
-	
+	router.Post("/sendmail", middleware.PublicRouteMiddleware(controller.SendEmailControllerPOST))
+
 }
 
-func loadModels(){
-	_,err := models.GetUserModel()
-	
-	if err!=nil{
-		fmt.Printf("Error while creating user model. Error: %v",err)
+func loadModels() {
+	_, err := models.GetUserModel()
+
+	if err != nil {
+		fmt.Printf("Error while creating user model. Error: %v", err)
 	}
 	fmt.Println("Loaded user model")
 }
 
-func main(){
+func main() {
 	addingRoutes()
 	router.LoadRoutes()
 
-	mangoClient := mango.MongoConnect(utils.GetEnvVariable("MONGODB_ATLAS_URI"),"gomailer")
+	mangoClient := mango.MongoConnect(utils.GetEnvVariable("MONGODB_ATLAS_URI"), "gomailer")
 	defer mangoClient.CloseConn()
 
 	// load models
@@ -55,6 +58,6 @@ func main(){
 	fmt.Println("Server is running at http://localhost:8080")
 	// Serve static assets like images, CSS, JS
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	log.Fatal(http.ListenAndServe(":8080",nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 
 }

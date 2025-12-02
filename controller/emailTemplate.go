@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"gomailer/models"
 	"gomailer/utils"
+	"html/template"
 	"log"
 	"net/http"
-	"path/filepath"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,15 +15,15 @@ import (
 )
 
 var (
-	allTemplateView = filepath.Join("views","templates.html")
-	createTemplateView = filepath.Join("views","createTemplate.html")
+	allTemplateView    = "allTemplates.html"
+	createTemplateView = "createTemplate.html"
 )
 
-type CreateTemplateRequest struct{
-	TemplateContent string
-	TemplateName string
+type CreateTemplateRequest struct {
+	TemplateContent   string
+	TemplateName      string
 	TemplateVariables []string
-	ID string
+	ID                string
 }
 
 type ErrorResponse struct {
@@ -36,107 +36,111 @@ func handleErrorRedirect(w http.ResponseWriter, r *http.Request, err error, path
 	http.Redirect(w, r, path, http.StatusSeeOther)
 }
 
-func TemplateControllerGET(w http.ResponseWriter,r * http.Request){
-	templateModal,err := models.GetTemplateModel()
-	
-	if(err!=nil){
-		handleErrorRedirect(w,r,err,"/template")
+func TemplateControllerGET(w http.ResponseWriter, r *http.Request) {
+	templateModal, err := models.GetTemplateModel()
+
+	if err != nil {
+		handleErrorRedirect(w, r, err, "/template")
 		return
 	}
 
 	filter := bson.M{}
 
-	templates,err := templateModal.Find(filter)
+	templates, err := templateModal.Find(filter)
 
-	if(err!=nil){
-		handleErrorRedirect(w,r,err,"/template")
+	if err != nil {
+		handleErrorRedirect(w, r, err, "/template")
+		return
+	}
+
+	templateList := []map[string]interface{}{}
+
+	for _, val := range templates {
+		templateList = append(templateList, map[string]interface{}{
+			"id":      val.ID.Hex(),
+			"name":    val.Name,
+			"content": val.TemplateContent,
+		})
+	}
+
+	jsonBytes, err := json.Marshal(templateList)
+	if err != nil {
+		http.Error(w, "Failed to serialize templates", http.StatusInternalServerError)
 		return
 	}
 
 	templateData := map[string]interface{}{
-		"templateList":[]interface{}{},
+		"templateListJSON": template.JS(jsonBytes),
 	}
-
-	for _,val := range templates{
-		newTemplate := map[string]interface{}{
-			"id":val.ID.Hex(),
-			"name":val.Name,
-		}
-
-		templateData["templateList"] = append(
-			templateData["templateList"].([]interface{}),
-			newTemplate)
-	}
-	utils.RenderTemplate(w,allTemplateView,templateData)
+	utils.RenderTemplate(w, allTemplateView, templateData)
 }
 
-func CreateTemplateControllerGET(w http.ResponseWriter,r * http.Request){
+func CreateTemplateControllerGET(w http.ResponseWriter, r *http.Request) {
 	// csrf token generation
 	token, err := utils.GenerateCSRFToken()
-	if(err!=nil){
+	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	utils.SetCSRFCookie(w, token)
-	
+
 	templateData := map[string]interface{}{
 		"CsrfToken": token,
 	}
-	utils.RenderTemplate(w,createTemplateView,templateData)
+	utils.RenderTemplate(w, createTemplateView, templateData)
 }
 
-func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
+func CreateTemplateControllerPOST(w http.ResponseWriter, r *http.Request) {
 
 	templateData := CreateTemplateRequest{
-		TemplateContent: utils.TrimSpaces(r.FormValue("templateContent")),
+		TemplateContent:   utils.TrimSpaces(r.FormValue("templateContent")),
 		TemplateVariables: []string{},
-		TemplateName: utils.TrimSpaces(r.FormValue("templateName")),
+		TemplateName:      utils.TrimSpaces(r.FormValue("templateName")),
 	}
 	w.Header().Set("Content-Type", "application/json")
 
 	// csrf token verification
-	if !utils.VerifyCSRFToken(r) {	
+	if !utils.VerifyCSRFToken(r) {
 		token, err := utils.GenerateCSRFToken()
-		if(err!=nil){
+		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 		utils.SetCSRFCookie(w, token)
 		templateData := map[string]interface{}{
 			"CsrfToken": token,
-			"error":"CSRF token mismatch. Please reload the page",
+			"error":     "CSRF token mismatch. Please reload the page",
 		}
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(templateData)
 		return
 	}
 
-	
-	variables := strings.Split(r.FormValue("templateVariables"),",")
+	variables := strings.Split(r.FormValue("templateVariables"), ",")
 
-	for _,vars:=range variables {
-		if(len(vars)>0){
-			templateData.TemplateVariables = append(templateData.TemplateVariables,vars)
+	for _, vars := range variables {
+		if len(vars) > 0 {
+			templateData.TemplateVariables = append(templateData.TemplateVariables, vars)
 		}
 	}
 
-	userID,err := primitive.ObjectIDFromHex(r.Header.Get("user_id"))
+	userID, err := primitive.ObjectIDFromHex(r.Header.Get("user_id"))
 
-	if(err!=nil){
+	if err != nil {
 		errorMap := map[string]string{
-			"error":"no user found!",
-			"redirect":"/login",
+			"error":    "no user found!",
+			"redirect": "/login",
 		}
 
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
-	templateModel,err := models.GetTemplateModel()
+	templateModel, err := models.GetTemplateModel()
 
-	if(err!=nil){
+	if err != nil {
 		errorMap := map[string]string{
-			"error":"error while getting template modal",
+			"error": "error while getting template modal",
 		}
 
 		json.NewEncoder(w).Encode(errorMap)
@@ -144,110 +148,111 @@ func CreateTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 	}
 
 	template := models.TemplateSchema{
-		UserID : userID,
-		Name: templateData.TemplateName,
-		TemplateContent: utils.TrimSpaces(templateData.TemplateContent),
+		UserID:            userID,
+		Name:              templateData.TemplateName,
+		TemplateContent:   utils.TrimSpaces(templateData.TemplateContent),
 		TemplateVariables: templateData.TemplateVariables,
 	}
 
 	err = template.Validate()
 
-	if(err!=nil){
+	if err != nil {
 		errorMap := map[string]string{
-			"error":"error while saving template",
-			"description":err.Error(),
+			"error":       "error while saving template",
+			"description": err.Error(),
 		}
-        log.Println(err.Error())
+		log.Println(err.Error())
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
-	if err:=templateModel.Save(&template);err!=nil{
+	if err := templateModel.Save(&template); err != nil {
 		errMsg := err.Error()
-		if mongo.IsDuplicateKeyError(err){
+		if mongo.IsDuplicateKeyError(err) {
 			errMsg = "Template with the title already exists"
 		}
 		errorMap := map[string]string{
-			"error":errMsg,
+			"error": errMsg,
 		}
-        log.Println(err.Error())
+		log.Println(err.Error())
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	tempMap := map[string]string{
-		"message":"success",
+		"message":  "success",
+		"redirect": "/template/edit?template_id=" + template.ID.Hex(),
 	}
-    json.NewEncoder(w).Encode(tempMap)
+	json.NewEncoder(w).Encode(tempMap)
 }
 
-func EditTemplateControllerGET(w http.ResponseWriter,r* http.Request){
+func EditTemplateControllerGET(w http.ResponseWriter, r *http.Request) {
 
 	templateID := r.URL.Query().Get("template_id")
 
-	if(templateID == ""){
-		http.Redirect(w,r,"/template",http.StatusSeeOther)
+	if templateID == "" {
+		http.Redirect(w, r, "/template", http.StatusSeeOther)
 		return
 	}
 
 	// csrf token generation
 	token, err := utils.GenerateCSRFToken()
-	if(err!=nil){
+	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	utils.SetCSRFCookie(w, token)
 
-	templateModel,err := models.GetTemplateModel()
+	templateModel, err := models.GetTemplateModel()
 
-	if(err!=nil){
-		handleErrorRedirect(w,r,err,"/template")
+	if err != nil {
+		handleErrorRedirect(w, r, err, "/template")
 		return
 	}
 
-	user_id,err := primitive.ObjectIDFromHex(r.Header.Get("user_id"))
-	if (err != nil){
-		handleErrorRedirect(w,r,err,"/template")
+	user_id, err := primitive.ObjectIDFromHex(r.Header.Get("user_id"))
+	if err != nil {
+		handleErrorRedirect(w, r, err, "/template")
 		return
 	}
 
-	template_id,err := primitive.ObjectIDFromHex(templateID)
-	if (err != nil){
-		handleErrorRedirect(w,r,err,"/template")
+	template_id, err := primitive.ObjectIDFromHex(templateID)
+	if err != nil {
+		handleErrorRedirect(w, r, err, "/template")
 		return
 	}
 
-	filter := bson.M{"_id":template_id,"user_id":user_id,}
+	filter := bson.M{"_id": template_id, "user_id": user_id}
 
-	data,err := templateModel.Find(filter)
+	data, err := templateModel.Find(filter)
 
-	if(err!=nil){
-		handleErrorRedirect(w,r,err,"/template")
+	if err != nil {
+		handleErrorRedirect(w, r, err, "/template")
 		return
 	}
 
 	templateData := map[string]interface{}{
-		"templateContent":data[0].TemplateContent,
-		"templateName":data[0].Name,
-		"templateVariables":strings.Join(data[0].TemplateVariables,","),
-		"CsrfToken":token,
+		"templateContent":   data[0].TemplateContent,
+		"templateName":      data[0].Name,
+		"templateVariables": strings.Join(data[0].TemplateVariables, ","),
+		"CsrfToken":         token,
 	}
-	utils.RenderTemplate(w,createTemplateView,templateData)
+	utils.RenderTemplate(w, createTemplateView, templateData)
 }
 
-func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
-	
+func EditTemplateControllerPOST(w http.ResponseWriter, r *http.Request) {
+
 	templateID := r.URL.Query().Get("template_id")
 
-	if(templateID == ""){
-		http.Redirect(w,r,"/template",http.StatusSeeOther)
+	if templateID == "" {
+		http.Redirect(w, r, "/template", http.StatusSeeOther)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if !utils.VerifyCSRFToken(r) {
 		errorMap := map[string]interface{}{
-			"error":"CSRF token mismatch. Please reload the page",
+			"error": "CSRF token mismatch. Please reload the page",
 		}
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(errorMap)
@@ -255,38 +260,38 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 	}
 
 	templateData := CreateTemplateRequest{
-		TemplateContent: utils.TrimSpaces(r.FormValue("templateContent")),
-		TemplateName: utils.TrimSpaces(r.FormValue("templateName")),
+		TemplateContent:   utils.TrimSpaces(r.FormValue("templateContent")),
+		TemplateName:      utils.TrimSpaces(r.FormValue("templateName")),
 		TemplateVariables: []string{},
 	}
 
-	variables := strings.Split(r.FormValue("templateVariables"),",")
+	variables := strings.Split(r.FormValue("templateVariables"), ",")
 
-	for _,vars:=range variables{
-		if(len(vars)>0){
+	for _, vars := range variables {
+		if len(vars) > 0 {
 			templateData.TemplateVariables = append(templateData.TemplateVariables, vars)
 		}
 	}
 
-	templateModel,err := models.GetTemplateModel()
+	templateModel, err := models.GetTemplateModel()
 
-	if(err!=nil){
+	if err != nil {
 		errorMap := map[string]string{
-			"error":"error while getting template modal",
+			"error": "error while getting template modal",
 		}
 
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
 
-	oldTemplate,err := templateModel.FindById(templateID)
+	oldTemplate, err := templateModel.FindById(templateID)
 
-	if(err != nil){
+	if err != nil {
 		errorMap := map[string]string{
-			"error":"error while finding template",
-			"description":err.Error(),
+			"error":       "error while finding template",
+			"description": err.Error(),
 		}
-        log.Println(err.Error())
+		log.Println(err.Error())
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
@@ -295,12 +300,12 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 	oldTemplate.TemplateContent = templateData.TemplateContent
 	oldTemplate.TemplateVariables = templateData.TemplateVariables
 
-	if err:= templateModel.Save(&oldTemplate);err!=nil{
+	if err := templateModel.Save(&oldTemplate); err != nil {
 		errorMap := map[string]string{
-			"error":"error while updating template",
-			"description":err.Error(),
+			"error":       "error while updating template",
+			"description": err.Error(),
 		}
-        log.Println(err.Error())
+		log.Println(err.Error())
 		json.NewEncoder(w).Encode(errorMap)
 		return
 	}
@@ -310,6 +315,6 @@ func EditTemplateControllerPOST(w http.ResponseWriter,r* http.Request){
 	tempMap["content"] = oldTemplate.TemplateContent
 	tempMap["variables"] = oldTemplate.TemplateVariables
 
-    json.NewEncoder(w).Encode(tempMap)
+	json.NewEncoder(w).Encode(tempMap)
 
 }
