@@ -22,7 +22,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 
-
     <style>
         html {
             font-family: Arial, sans-serif;
@@ -75,21 +74,23 @@
 
 <body class="flex flex-col w-full">
 
+    <div class="p-[40px] flex flex-col gap-2">
+        <div class="font-[700] text-[40px] mb-8">gomailer.co</div>
+
     <div class="hidden w-full h-full bg-[#00000053] absolute top-0 left-0 z-10 flex-col items-center justify-center"
         id="popupOverlay">
         <input type="hidden" id="csrf_token" name="csrf_token" value="{{.CsrfToken}}">
         <div class="flex flex-col items-center justify-center p-[1rem] bg-[#fff] rounded w-fit gap-2">
-            <div class="flex flex-row justify-between w-full">
+            <div class="flex flex-row justify-between items-center w-full">
                 <div>Add template variable</div>
-                <button onclick="handlePopUpdisplay(false)" class="relative w-fit h-full flex flex-col signup-animation cursor-pointer">
-                    <div id="back"
-                        class="w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1">
-                        Close</div>
-                    <div id="front"
-                        class="absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1">
-                        Close
-                    </div>
-                </button>
+                
+                {{ 
+                    template "button" 
+                    map "ID" "create-template-close-1" 
+                        "Label" "Close" 
+                        "Action" "handlePopUpdisplay(false)" 
+                }}
+
             </div>
             <div class="flex flex-row gap-4 items-start w-full mt-2">
                 <div class="flex flex-col gap-2">
@@ -103,54 +104,45 @@
             </div>
             <div class="text-[red] hidden w-full" id="templateModalError">Please enter values and make sure labels are
                 unique*</div>
-            
-            <button onclick="addVariable()" class="relative w-fit h-full flex self-start flex-col signup-animation cursor-pointer mt-2">
-                <div id="back"
-                    class="w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1">
-                    Add</div>
-                <div id="front"
-                    class="absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1">
-                    Add
-                </div>
-            </button>
+            <div class="self-start">
+                {{ 
+                    template "button" 
+                    map "ID" "create-template-add-1" 
+                        "Label" "Add" 
+                        "Action" "addVariable()" 
+                }}
+            </div>
         </div>
     </div>
 
-    <div class="flex flex-col p-[1rem] w-full h-full gap-[1rem]">
-       <input 
-            class="p-2 w-fit bg-[#D9D9D9] text-[#000] outline-none w-[200px]" 
-            id="templateName" 
-            placeholder="Template name" 
-            {{ if .templateName }} value="{{ .templateName }}" {{ end }} 
-        />
+    <div class="flex flex-col w-full h-full gap-[1rem]">
+        <div class="flex flex-row gap-2 items-center">
+            <input 
+                class="p-2 w-fit bg-[#D9D9D9] text-[#000] outline-none w-[200px]" 
+                id="templateName" 
+                placeholder="Template name" 
+                {{ if .templateName }} value="{{ .templateName }}" {{ end }} 
+            />
 
-
-        <div class="flex flex-col gap-[0.5rem]" id="variableContainer">
-
-        <button onclick="handleTemplateSubmit()" class="relative w-fit h-full flex flex-col signup-animation cursor-pointer">
-            <div id="back"
-                class="w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1">
-                Save template</div>
-            <div id="front"
-                class="absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1">
-                Save template
-            </div>
-        </button>
-        
-        <button onclick="handlePopUpdisplay(true)" class="relative w-fit h-full flex flex-col signup-animation cursor-pointer mt-2">
-            <div id="back"
-                class="w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1">
-                Add new variable</div>
-            <div id="front"
-                class="absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1">
-                Add new variable
-            </div>
-        </button>
+            {{ 
+                template "button" 
+                map "ID" "save-template-1" 
+                    "Label" "Save template" 
+                    "Action" "handleTemplateSubmit()" 
+            }}
+        </div>
+        {{ 
+            template "button" 
+            map "ID" "add-variable-1" 
+                "Label" "Add new variable" 
+                "Action" "handlePopUpdisplay(true)" 
+        }}
         
         <div class="flex flex-row gap-2 variableItem">
             <div class="p-2 rounded border-2 w-[300px] hidden">Template variable label</div>
             <div class="p-2 rounded border-2 w-[300px] hidden">Template variable value</div>
         </div>
+        <div class="flex flex-col gap-[0.5rem]" id="variableContainer"></div>
 
         </div>
         <div class="flex flex-row flex-wrap md:flex-nowrap">
@@ -199,7 +191,6 @@
         </button>
 
     </div>
-
     <!-- dom purify library for xss vulnerabilities -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.3/purify.min.js"
         integrity="sha512-Ll+TuDvrWDNNRnFFIM8dOiw7Go7dsHyxRp4RutiIFW/wm3DgDmCnRZow6AqbXnCbpWu93yM1O34q+4ggzGeXVA=="
@@ -450,6 +441,8 @@
             })
         }
     </script>
+
+    {{template "footer"}}
 
 </body>
 

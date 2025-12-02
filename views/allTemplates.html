@@ -1,0 +1,96 @@
+<html>
+      {{ 
+        template "header" 
+        map "isWhite" false
+            "Title" "Gomailer - Templates" 
+      }}
+      <div class="px-[40px] flex flex-col gap-[20px]">
+        <div class="text-[80px] text-white font-light uppercase self-end w-fit">
+          templates
+        </div>
+
+        <a
+          href="/template/create"
+          class="relative w-fit flex flex-col signup-animation cursor-pointer"
+        >
+          {{ 
+            template "button" 
+            map "ID" "allTemplates-1" 
+                "Label" "CREATE NEW" 
+                "Action" "" 
+          }}
+        </a>
+
+        {{ if .templateListJSON }}
+        <div class="flex flex-col gap-4 w-full" id="templateContainer"></div>
+        {{ end }}
+      </div>
+
+      {{template "footer"}}
+  <script>
+    window.onload = () => {
+      if ("{{.templateListJSON}}") {
+        const strJson = "{{.templateListJSON}}";
+        const templateListData = JSON.parse(strJson);
+        templateListData.forEach((template) => {
+          // template name div
+          const templateName = document.createElement("div");
+          templateName.classList =
+            "uppercase text-[40px] font-[600] text-black";
+          templateName.innerText = template.name;
+
+          const templateContent = document.createElement("iframe");
+          templateContent.style.width = "100%";
+          templateContent.style.height = "500px";
+          templateContent.style.overflow = "hidden";
+          templateContent.style.backgroundColor = "#fff";
+          templateContent.setAttribute("scrolling", "no");
+
+          templateContent.onload = function () {
+            templateContent.contentDocument.open();
+            templateContent.contentDocument.write(template.content);
+            templateContent.contentDocument.close();
+          };
+
+          const redirectBtn = document.createElement("a");
+          redirectBtn.className = "text-black";
+          redirectBtn.setAttribute(
+            "href",
+            `/template/edit?template_id=${template.id}`
+          );
+          redirectBtn.innerText = "EDIT";
+
+          const link = document.createElement("a");
+          link.href = `/template/edit?template_id=${template.id}`;
+          link.className =
+            "relative w-fit h-fit flex flex-col signup-animation cursor-pointer";
+
+          // Create BACK div
+          const back = document.createElement("div");
+          back.id = "back";
+          back.className =
+            "uppercase w-fit h-fit bg-[#000] text-[#fff] text-[18px] font-[300] duration-500 p-1";
+          back.textContent = "edit";
+
+          // Create FRONT div
+          const front = document.createElement("div");
+          front.id = "front";
+          front.className =
+            "absolute whitespace-nowrap uppercase w-fit top-[-5px] bg-[#fff] text-[#000] text-[18px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1";
+          front.textContent = "edit";
+
+          // Append children
+          link.appendChild(back);
+          link.appendChild(front);
+
+          const newDiv = document.createElement("div");
+          newDiv.className = "flex flex-col p-4 gap-4 bg-white rounded-xl";
+          newDiv.appendChild(templateName);
+          newDiv.appendChild(templateContent);
+          newDiv.appendChild(link);
+          document.getElementById("templateContainer").appendChild(newDiv);
+        });
+      }
+    };
+  </script>
+</html>

@@ -1,10 +1,14 @@
 package controller
 
 import (
-	"fmt"
+	"gomailer/utils"
 	"net/http"
 )
 
-func AboutController(w http.ResponseWriter, _ *http.Request){
-	fmt.Fprintf(w,"<h1>About page.</h1>")
+var (
+	aboutHtml = "about.html"
+)
+
+func AboutController(w http.ResponseWriter, _ *http.Request) {
+	utils.RenderTemplate(w, aboutHtml, nil)
 }
