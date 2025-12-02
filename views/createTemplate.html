@@ -30,6 +30,7 @@
             padding: 0px;
             scroll-behavior: smooth;
             width: 100%;
+            font-family: Lexend;
         }
 
         /* width */
@@ -56,6 +57,19 @@
         .CodeMirror {
             height: 100%;
         }
+
+        .signup-animation:hover>#front {
+            background-color: #000;
+            color: #fff;
+            /* top-[-5px] left-[5px] */
+            top: 0px;
+            left: 0px;
+        }
+
+        .signup-animation:hover>#back {
+            background-color: #fff;
+            color: #000;
+        }
     </style>
 </head>
 
@@ -67,8 +81,15 @@
         <div class="flex flex-col items-center justify-center p-[1rem] bg-[#fff] rounded w-fit gap-2">
             <div class="flex flex-row justify-between w-full">
                 <div>Add template variable</div>
-                <div class="cursor-pointer p-2 bg-[grey] rounded text-[white]" onclick="handlePopUpdisplay(false)">close
-                </div>
+                <button onclick="handlePopUpdisplay(false)" class="relative w-fit h-full flex flex-col signup-animation cursor-pointer">
+                    <div id="back"
+                        class="w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1">
+                        Close</div>
+                    <div id="front"
+                        class="absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1">
+                        Close
+                    </div>
+                </button>
             </div>
             <div class="flex flex-row gap-4 items-start w-full mt-2">
                 <div class="flex flex-col gap-2">
@@ -82,30 +103,58 @@
             </div>
             <div class="text-[red] hidden w-full" id="templateModalError">Please enter values and make sure labels are
                 unique*</div>
-            <button class="p-2 border-0 rounded outline-0 bg-[grey] text-[white] w-fit self-start"
-                onclick="addVariable()">Add
+            
+            <button onclick="addVariable()" class="relative w-fit h-full flex self-start flex-col signup-animation cursor-pointer mt-2">
+                <div id="back"
+                    class="w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1">
+                    Add</div>
+                <div id="front"
+                    class="absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1">
+                    Add
+                </div>
             </button>
         </div>
     </div>
 
     <div class="flex flex-col p-[1rem] w-full h-full gap-[1rem]">
-        {{ if .templateName }}
-        <input class="p-2 border-2 w-fit" id="templateName" placeholder="Template name" value="{{.templateName}}" />
-        {{ else }}
-        <input class="p-2 border-2 w-fit" id="templateName" placeholder="Template name" />
-        {{end}}
+       <input 
+            class="p-2 w-fit bg-[#D9D9D9] text-[#000] outline-none w-[200px]" 
+            id="templateName" 
+            placeholder="Template name" 
+            {{ if .templateName }} value="{{ .templateName }}" {{ end }} 
+        />
+
 
         <div class="flex flex-col gap-[0.5rem]" id="variableContainer">
-            <button onclick="handlePopUpdisplay(true)"
-                class="bg-[grey] outline-0 rounded p-[1rem] border-0 text-[white] w-fit h-fit">Add new variable</button>
-            <div class="flex flex-row gap-2 variableItem">
-                <div class="p-2 rounded border-2 w-[300px]">Template variable label</div>
-                <div class="p-2 rounded border-2 w-[300px]">Template variable value</div>
+
+        <button onclick="handleTemplateSubmit()" class="relative w-fit h-full flex flex-col signup-animation cursor-pointer">
+            <div id="back"
+                class="w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1">
+                Save template</div>
+            <div id="front"
+                class="absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1">
+                Save template
             </div>
+        </button>
+        
+        <button onclick="handlePopUpdisplay(true)" class="relative w-fit h-full flex flex-col signup-animation cursor-pointer mt-2">
+            <div id="back"
+                class="w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1">
+                Add new variable</div>
+            <div id="front"
+                class="absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1">
+                Add new variable
+            </div>
+        </button>
+        
+        <div class="flex flex-row gap-2 variableItem">
+            <div class="p-2 rounded border-2 w-[300px] hidden">Template variable label</div>
+            <div class="p-2 rounded border-2 w-[300px] hidden">Template variable value</div>
+        </div>
 
         </div>
         <div class="flex flex-row flex-wrap md:flex-nowrap">
-            <div class="w-[100%] overflow-scroll p-0">
+            <div class="w-[100%] overflow-scroll p-0 min-h-[716px] max-h-[716px]">
                 {{ if .templateContent }}
                 <textarea id="codeEditor">{{ .templateContent}}</textarea>
                 {{ else }}
@@ -139,7 +188,16 @@
             <iframe id="previewPane" class="w-[100%] overflow-scroll p-0 border-2 min-h-[500px] max-h-[700px]"
                 sandbox></iframe>
         </div>
-        <div class="text-[white] bg-[grey] p-2 rounded w-fit cursor-pointer" onclick="handleTemplateSubmit()">Save</div>
+        <button onclick="handleTemplateSubmit()" class="relative w-fit h-full flex flex-col signup-animation cursor-pointer">
+            <div id="back"
+                class="w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1">
+                Save template</div>
+            <div id="front"
+                class="absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1">
+                Save template
+            </div>
+        </button>
+
     </div>
 
     <!-- dom purify library for xss vulnerabilities -->
@@ -186,21 +244,41 @@
             }
             const parent = document.getElementById("variableContainer");
             newInput.children[0].innerHTML = label;
+            newInput.children[0].className = "p-2 bg-[#D9D9D9] text-[#000] outline-none w-[200px]";
             newInput.children[1].innerHTML = value;
+            newInput.children[1].className = "p-2 bg-[#D9D9D9] text-[#000] outline-none w-[200px]";
 
             if (Object.keys(templateVariableMap).includes(label)) {
                 document.getElementById("templateModalError").style.display = "flex"
                 return;
             }
 
-            const removeButton = document.createElement("button");
-            removeButton.innerText = "Delete"
-            removeButton.className = "p-2 border-2 bg-[grey] text-[white]"
-            removeButton.onclick = function () {
+             // Create button
+            const button = document.createElement("button");
+            button.onclick = () => handlePopUpdisplay(false);
+            button.className = "relative w-fit h-full flex flex-col signup-animation cursor-pointer mt-1";
+
+            // Create inner back div
+            const backDiv = document.createElement("div");
+            backDiv.id = "back";
+            backDiv.className = "w-fit h-full bg-[#000] text-[#fff] text-[16px] font-[300] duration-500 p-1";
+            backDiv.innerText = "Delete";
+
+            // Create inner front div
+            const frontDiv = document.createElement("div");
+            frontDiv.id = "front";
+            frontDiv.className = "absolute whitespace-nowrap w-fit top-[-5px] bg-[#fff] text-[#000] text-[16px] font-[300] left-[5px] border-[2px] border-[#000] duration-500 p-1";
+            frontDiv.innerText = "Delete";
+
+            // Assemble & append
+            button.appendChild(backDiv);
+            button.appendChild(frontDiv);
+
+            button.onclick = function () {
                 parent.removeChild(newInput)
                 delete templateVariableMap[label]
             }
-            newInput.appendChild(removeButton)
+            newInput.appendChild(button)
             parent.appendChild(newInput)
             templateVariableMap[label] = value
         }
@@ -250,7 +328,16 @@
         }
 
         function sanitizeInput(content) {
-            return DOMPurify.sanitize(content, {
+
+            const placeholderMap = {};
+            
+            let sanitizedContent = content.replace(/\{\{[\w\d_]+\}\}/g, (match, index) => {
+                const token = `__PLACEHOLDER_${index}__`;
+                placeholderMap[token] = match;
+                return token;
+            });
+
+            sanitizedContent = DOMPurify.sanitize(sanitizedContent, {
                 WHOLE_DOCUMENT: true,
                 FORCE_BODY: true,
                 ALLOWED_TAGS: [
@@ -264,6 +351,12 @@
                 RETURN_DOM: false,
                 SANITIZE_DOM: true
             });
+
+            Object.keys(placeholderMap).forEach(token => {
+                sanitizedContent = sanitizedContent.replace(token, placeholderMap[token]);
+            });
+
+            return sanitizedContent;
         }
 
         function updatePreview() {

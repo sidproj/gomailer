@@ -30,3 +30,5 @@ func GetUserModel()(*mango.GenericCollectionModel[UserSchema],error){
 	return &model,nil
 }
 
+// email: sid@gmail.com
+// password: test@1234
