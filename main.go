@@ -27,9 +27,11 @@ func addingRoutes() {
 	router.Post("/template/create", middleware.AuthMiddlewareUser(controller.CreateTemplateControllerPOST))
 	router.Get("/template/edit", middleware.AuthMiddlewareUser(controller.EditTemplateControllerGET))
 	router.Post("/template/edit", middleware.AuthMiddlewareUser(controller.EditTemplateControllerPOST))
+	router.Delete("/template/delete", middleware.AuthMiddlewareUser(controller.DeleteTemplateControllerDELETE))
 
-	// about
+	// static
 	router.Get("/about", controller.AboutController)
+	router.Get("/privacy-policy", controller.PrivacyPollicyController)
 
 	// this endpoint will be available to other websites
 	router.Post("/sendmail", middleware.PublicRouteMiddleware(controller.SendEmailControllerPOST))

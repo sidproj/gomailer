@@ -5,13 +5,15 @@ import (
 	"net/http"
 )
 
+var (
+	homeHTML = "home.html"
+)
+
 type HomeData struct {
 	Title string
 	Loop  []string
 }
 
 func HomeController(w http.ResponseWriter, r *http.Request) {
-	loop := []string{"arceus", "zekrom", "mewtwo"}
-	p := HomeData{Title: "Pokemon", Loop: loop}
-	utils.RenderTemplate(w, "index.html", p)
+	utils.RenderTemplate(w, homeHTML, nil)
 }

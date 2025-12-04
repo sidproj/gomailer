@@ -14,6 +14,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type TimeStamps struct {
+	CreatedAt time.Time `bson:"created_at"`
+	UpdatedAt time.Time `bson:"updated_at"`
+}
+
 type GenericCollectionModel[T any] struct {
 	collectionName  string
 	mongoCollection *mongo.Collection
@@ -24,116 +29,157 @@ type GenericCollectionModel[T any] struct {
 // checks if the parameter is sturct, returns error if not.
 // If the struct has ID filed populated then it updates document with the struct.
 // Else inserts a new document into the collection and set's its ID in the struct passed.
-func (collection *GenericCollectionModel[T])Save(model* T)error{
+func (collection *GenericCollectionModel[T]) Save(model *T) error {
 
 	reflectedModel := reflect.ValueOf(model)
-    
-    if reflectedModel.Kind() == reflect.Ptr{
-        reflectedModel = reflectedModel.Elem()
-    }
 
-    if reflectedModel.Kind() != reflect.Struct{
-        return errors.New("model schema must be a struct")
-    }
+	if reflectedModel.Kind() == reflect.Ptr {
+		reflectedModel = reflectedModel.Elem()
+	}
 
-    idField := reflectedModel.FieldByName("ID") 
+	if reflectedModel.Kind() != reflect.Struct {
+		return errors.New("model schema must be a struct")
+	}
 
-    if !idField.IsValid(){
-        return errors.New("model schema does not have an 'ID' field")
-    }
+	idField := reflectedModel.FieldByName("ID")
 
-    if idField.IsZero(){
-        ctx, cancel := context.WithTimeout(context.Background(), 
-                                    10 * time.Second)
-        defer cancel()
+	if !idField.IsValid() {
+		return errors.New("model schema does not have an 'ID' field")
+	}
 
-        result,err := collection.mongoCollection.InsertOne(ctx,model)
+	now := time.Now()
+	createdAtField := reflectedModel.FieldByName("CreatedAt")
+	updatedAtField := reflectedModel.FieldByName("UpdatedAt")
 
-        if err!= nil {
-            error_code := strings.Split(strings.Split(err.Error(), "[")[1], " ")[0]
-            
-            fmt.Print(err.Error())
-            
-            if error_code == "E11000"{
-                return errors.New("E11000")
-            }
-            return err
-        }
+	if idField.IsZero() {
 
-        // update id in struct
-        if idField.CanSet() && result.InsertedID != nil{
-            idField.Set(reflect.ValueOf(result.InsertedID))
-        }
-    }else{
-        ctx, cancel := context.WithTimeout(context.Background(), 
-                                    10 * time.Second)
-        defer cancel()
-        
-        filter := bson.M{"_id":idField.Interface()}
-        update := bson.M{"$set":model}
+		if createdAtField.IsValid() && createdAtField.CanSet() {
+			createdAtField.Set(reflect.ValueOf(now))
+		}
+		if updatedAtField.IsValid() && updatedAtField.CanSet() {
+			updatedAtField.Set(reflect.ValueOf(now))
+		}
 
-        opts := options.Update().SetUpsert(true)
+		ctx, cancel := context.WithTimeout(context.Background(),
+			10*time.Second)
+		defer cancel()
 
-        _,err := collection.mongoCollection.UpdateOne(ctx,filter,update,opts)
+		result, err := collection.mongoCollection.InsertOne(ctx, model)
 
-        if err != nil{
-            return err
-        }
+		if err != nil {
+			error_code := strings.Split(strings.Split(err.Error(), "[")[1], " ")[0]
 
-    }
-    return nil
+			fmt.Print(err.Error())
+
+			if error_code == "E11000" {
+				return errors.New("E11000")
+			}
+			return err
+		}
+
+		// update id in struct
+		if idField.CanSet() && result.InsertedID != nil {
+			idField.Set(reflect.ValueOf(result.InsertedID))
+		}
+	} else {
+
+		if updatedAtField.IsValid() && updatedAtField.CanSet() {
+			updatedAtField.Set(reflect.ValueOf(now))
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(),
+			10*time.Second)
+		defer cancel()
+
+		filter := bson.M{"_id": idField.Interface()}
+		update := bson.M{"$set": model}
+
+		opts := options.Update().SetUpsert(true)
+
+		_, err := collection.mongoCollection.UpdateOne(ctx, filter, update, opts)
+
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
 }
 
-func (collection *GenericCollectionModel[T])Find(filter bson.M)([]T,error){
+func (collection *GenericCollectionModel[T]) Find(filter bson.M, opts ...*options.FindOptions) ([]T, error) {
 
 	var data []T
 
-    
-    ctx, cancel := context.WithTimeout(context.Background(), 
-                                10 * time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(),
+		10*time.Second)
+	defer cancel()
 
-	cursor,err := collection.mongoCollection.Find(ctx,filter)
-	if err != nil{
-		return nil,err
+	cursor, err := collection.mongoCollection.Find(ctx, filter, opts...)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := cursor.All(ctx,&data); err != nil{
-		return nil,err
+	if err := cursor.All(ctx, &data); err != nil {
+		return nil, err
 	}
 
-	return data,nil
+	return data, nil
 }
 
 // FindById returns model(struct) by taking id as a parameter. It checks if
 // id is a valid ObjectID. Returns model(struct) and err.
-func (collection *GenericCollectionModel[T])FindById(id string)(T,error){
+func (collection *GenericCollectionModel[T]) FindById(id string) (T, error) {
 
 	var model T
-    // Convert the string ID to ObjectID
+	// Convert the string ID to ObjectID
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return model, errors.New("invalid ObjectID")
 	}
 
-    ctx, cancel := context.WithTimeout(context.Background(), 
-                                10 * time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(),
+		10*time.Second)
+	defer cancel()
 
-    filter := bson.M{"_id":objectID}
+	filter := bson.M{"_id": objectID}
 
-    if err := collection.mongoCollection.FindOne(ctx,filter).Decode(&model); err != nil{
-        return model,err
-    }
+	if err := collection.mongoCollection.FindOne(ctx, filter).Decode(&model); err != nil {
+		return model, err
+	}
 
-    return model,nil
+	return model, nil
 }
 
-func (collection *GenericCollectionModel[T])CreateIndex(fields []string) error{
-    
-    err := dbClient.createCollectionIndex(collection.collectionName,fields)
-    if err != nil{
-        return err
-    }
-    return nil
+func (collection *GenericCollectionModel[T]) DeleteById(id string) (T, error) {
+	var model T
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return model, errors.New("invalid ObjectID")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
+
+	filter := bson.M{"_id": objectID}
+
+	result, err := collection.mongoCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		return model, err
+	}
+
+	if result.DeletedCount == 0 {
+		return model, errors.New("no document found")
+	}
+	return model, nil
+}
+
+func (collection *GenericCollectionModel[T]) CreateIndex(fields []string) error {
+
+	err := dbClient.createCollectionIndex(collection.collectionName, fields)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodeMirror Integration</title>
+    <title>Gomailer - template</title>
 
     <!-- code mirror design/UI import -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.10/codemirror.min.css">
@@ -130,6 +130,17 @@
                     "Label" "Save template" 
                     "Action" "handleTemplateSubmit()" 
             }}
+
+            <div class="ml-1"></div>
+
+            {{ if .templateName }}
+                {{
+                    template "button"
+                    map "ID" "delete-template-1"
+                        "Label" "Delete template"
+                        "Action" "handleTemplateDelete()"
+                }}
+            {{ end }}
         </div>
         {{ 
             template "button" 
@@ -383,6 +394,19 @@
             updatePreview()
         });
 
+        async function handleTemplateDelete(){
+            const urlString = window.location.search;
+            const urlParams = new URLSearchParams(urlString);
+            const template_id = urlParams.get('template_id');
+            const url = `/template/delete?template_id=${template_id}`;
+            const res = await fetch(url,{method:"DELETE"});
+            const data = await res.json();
+            if(data.status == "success"){
+                window.location.href = "/template"
+            }
+            console.log(data);
+        }
+
         async function handleTemplateSubmit() {
             let formData = new FormData();
             const templateName = document.getElementById("templateName").value
@@ -401,7 +425,7 @@
             formData.append('templateName', templateName)
             formData.append("csrf_token", document.getElementById("csrf_token").value);
 
-            const urlString = window.location.search; // Gets the query string part of the URL
+            const urlString = window.location.search;
             const urlParams = new URLSearchParams(urlString);
 
             const template_id = urlParams.get('template_id');

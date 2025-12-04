@@ -7,27 +7,28 @@ import (
 )
 
 type UserSchema struct {
-	ID primitive.ObjectID `bson:"_id,omitempty"`
-	FirstName string `bson:"first_name"`
-	LastName string `bson:"last_name"`
-	Email string `bson:"email"`
-	Password string `bson:"password"`
+	ID               primitive.ObjectID `bson:"_id,omitempty"`
+	FirstName        string             `bson:"first_name"`
+	LastName         string             `bson:"last_name"`
+	Email            string             `bson:"email"`
+	Password         string             `bson:"password"`
+	mango.TimeStamps `bson:",inline"`
 }
 
 var userModel *mango.GenericCollectionModel[UserSchema]
 
-func GetUserModel()(*mango.GenericCollectionModel[UserSchema],error){
+func GetUserModel() (*mango.GenericCollectionModel[UserSchema], error) {
 
-	if(userModel != nil) {
-		return userModel,nil
+	if userModel != nil {
+		return userModel, nil
 	}
 
 	model := mango.CreateModel[UserSchema]("users")
-	if err:=model.CreateIndex([]string{"email"});err!=nil{
-		return nil,err
+	if err := model.CreateIndex([]string{"email"}); err != nil {
+		return nil, err
 	}
 	userModel = &model
-	return &model,nil
+	return &model, nil
 }
 
 // email: sid@gmail.com
