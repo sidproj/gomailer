@@ -21,7 +21,6 @@ func addingRoutes() {
 	router.Get("/register", controller.RegisterControllerGET)
 	router.Post("/register", controller.RegisterControllerPOST)
 
-	// template testing
 	router.Get("/template", middleware.AuthMiddlewareUser(controller.TemplateControllerGET))
 	router.Get("/template/create", middleware.AuthMiddlewareUser(controller.CreateTemplateControllerGET))
 	router.Post("/template/create", middleware.AuthMiddlewareUser(controller.CreateTemplateControllerPOST))
@@ -29,7 +28,7 @@ func addingRoutes() {
 	router.Post("/template/edit", middleware.AuthMiddlewareUser(controller.EditTemplateControllerPOST))
 	router.Delete("/template/delete", middleware.AuthMiddlewareUser(controller.DeleteTemplateControllerDELETE))
 
-	// static
+	// static pages
 	router.Get("/about", controller.AboutController)
 	router.Get("/privacy-policy", controller.PrivacyPollicyController)
 
