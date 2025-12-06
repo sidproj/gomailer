@@ -1,0 +1,42 @@
+name: Deploy Gomailer to EC2
+
+on:
+  push:
+    branches: ["main"]
+  
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: action/checkout@v3
+
+    - name: Set up go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25'
+    
+    - name: Build Go binary
+      run: |
+        go build -o server .
+    
+    - name: copy binary to EC2
+      uses: appleboy/scp-action@v0.1.6
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "server"
+        target: "/home/ubuntu/gomailer/server.tmp"
+      
+    - name: Deploy binary & restart service
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          mv /home/ubuntu/gomailer/server.temp /home/ubuntu/gomailer/server
+          chmod +x /home/ubuntu/gomailer/server
+          sudo systemctl restart gomailer-prod
