@@ -31,8 +31,12 @@ jobs:
         target: "/home/ubuntu/gomailer/server.tmp"
       
     - name: Deploy binary & restart service
-      run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ubuntu@${{ secrets.EC2_HOST }} "
-          mv /home/ubuntu/gomailer/server.tmp /home/ubuntu/gomailer/server &&
-          chmod +x /home/ubuntu/gomailer/server &&
-          sudo systemctl restart gomailer-prod"
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          mv /home/ubuntu/gomailer/server.temp /home/ubuntu/gomailer/server
+          chmod +x /home/ubuntu/gomailer/server
+          sudo systemctl restart gomailer-prod
