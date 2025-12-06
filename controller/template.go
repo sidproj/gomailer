@@ -51,7 +51,7 @@ func TemplateControllerGET(w http.ResponseWriter, r *http.Request) {
 
 	filter := bson.M{}
 
-	opts := options.Find().SetSort(bson.D{{"updated_at", -1}})
+	opts := options.Find().SetSort(bson.D{{Key: "updated_at", Value: -1}})
 
 	templates, err := templateModal.Find(filter, opts)
 

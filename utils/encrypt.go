@@ -21,42 +21,42 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func GenerateCSRFToken()(string,error){
-	b := make([]byte,32)
-	_,err := rand.Read(b)
+func GenerateCSRFToken() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
 
-	if(err!=nil){
-		return "",err
+	if err != nil {
+		return "", err
 	}
 
-	return base64.URLEncoding.EncodeToString(b),nil
+	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-func SetCSRFCookie(w http.ResponseWriter,token string){
-	http.SetCookie(w,&http.Cookie{
+func SetCSRFCookie(w http.ResponseWriter, token string) {
+	http.SetCookie(w, &http.Cookie{
 		Name:     csrfCookieName,
 		Value:    token,
 		Path:     "/",
 		HttpOnly: false,
-		Secure:   true,
+		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Now().Add(1 * time.Hour),		
+		Expires:  time.Now().Add(1 * time.Hour),
 	})
 }
 
-func GetCSRFCookie(r * http.Request)(string,error){
-	cookie,err := r.Cookie(csrfCookieName)
-	if(err!=nil){
-		return "",err
+func GetCSRFCookie(r *http.Request) (string, error) {
+	cookie, err := r.Cookie(csrfCookieName)
+	if err != nil {
+		return "", err
 	}
-	return cookie.Value,nil
+	return cookie.Value, nil
 }
 
-func VerifyCSRFToken(r *http.Request)bool{
+func VerifyCSRFToken(r *http.Request) bool {
 	formToken := r.FormValue("csrf_token")
-	cookieToken,err := GetCSRFCookie(r)
+	cookieToken, err := GetCSRFCookie(r)
 
-	if(err!=nil){
+	if err != nil {
 		return false
 	}
 	return formToken == cookieToken
