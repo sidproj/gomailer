@@ -36,7 +36,8 @@ jobs:
         host: ${{ secrets.EC2_HOST }}
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          mv /home/ubuntu/gomailer/server.temp /home/ubuntu/gomailer/server
-          chmod +x /home/ubuntu/gomailer/server
-          sudo systemctl restart gomailer-prod
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ubuntu@${{ secrets.EC2_HOST }} "
+          mv /home/ubuntu/gomailer/server.tmp /home/ubuntu/gomailer/server &&
+          chmod +x /home/ubuntu/gomailer/server &&
+          sudo systemctl restart gomailer-prod"
