@@ -37,7 +37,7 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         source: "templates/"
-        target: "/home/ubuntu/gomailer/templates/"
+        target: "/home/ubuntu/gomailer/views/"
       
     - name: Deploy binary & restart service
       uses: appleboy/ssh-action@master
