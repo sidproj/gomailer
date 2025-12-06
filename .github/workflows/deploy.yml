@@ -38,6 +38,15 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         source: "views/"
         target: "/home/ubuntu/gomailer/"
+    
+    - name: Copy static images to EC2
+      uses: appleboy/scp-action@v0.1.6
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "static/"
+        target: "/home/ubuntu/gomailer/"
       
     - name: Deploy binary & restart service
       uses: appleboy/ssh-action@master
