@@ -20,15 +20,6 @@ jobs:
     - name: Build Go binary
       run: |
         go build -o server .
-    
-    - name: Remove previous tmp file
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ubuntu
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          rm -rf /home/ubuntu/gomailer/server.tmp
 
     - name: copy binary to EC2
       uses: appleboy/scp-action@v0.1.6
