@@ -30,6 +30,15 @@ jobs:
         source: "server"
         target: "/home/ubuntu/gomailer/server.tmp"
       
+    - name: Copy templates to EC2
+      uses: appleboy/scp-action@v0.1.6
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "templates/"
+        target: "/home/ubuntu/gomailer/templates/"
+      
     - name: Deploy binary & restart service
       uses: appleboy/ssh-action@master
       with:
