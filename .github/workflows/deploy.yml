@@ -31,12 +31,7 @@ jobs:
         target: "/home/ubuntu/gomailer/server.tmp"
       
     - name: Deploy binary & restart service
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ubuntu
-        key: ${{ secrets.EC2_SSH_KEY }}
-        run: |
+      run: |
           ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ubuntu@${{ secrets.EC2_HOST }} "
           mv /home/ubuntu/gomailer/server.tmp /home/ubuntu/gomailer/server &&
           chmod +x /home/ubuntu/gomailer/server &&
