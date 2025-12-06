@@ -46,6 +46,7 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          mv /home/ubuntu/gomailer/server.tmp /home/ubuntu/gomailer/server
+          mv /home/ubuntu/gomailer/server.tmp/server /home/ubuntu/gomailer/server
           chmod +x /home/ubuntu/gomailer/server
+          rm -rf /home/ubuntu/gomailer/server.tmp
           sudo systemctl restart gomailer-prod
